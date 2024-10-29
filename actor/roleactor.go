@@ -49,6 +49,7 @@ func (role *RoleActor) MsgReceiveLoop() {
 
 func (role *RoleActor) MsgProcLoop() {
 	ticker := time.NewTicker(time.Millisecond * 10)
+FOR:
 	for {
 		if msg := role.msgQueue.Dequeue(); msg != nil {
 			msg.Proc()
@@ -56,12 +57,12 @@ func (role *RoleActor) MsgProcLoop() {
 		}
 		select {
 		case <-role.procClosedChan:
-			goto END
+			break FOR
 		case <-ticker.C:
 			//TODO
 		}
 	}
-END:
+
 	//  处理剩余消息
 	if role.msgQueue.Size() > 0 {
 		for i := 0; i < role.msgQueue.Size(); i++ {
