@@ -18,5 +18,6 @@ ENV TZ Asia/Shanghai
 
 WORKDIR /app
 COPY --from=builder /app/ppt /app/ppt
+EXPOSE 8081
 
 CMD ["/app/ppt"]
