@@ -6,8 +6,14 @@ import (
 	"net"
 )
 
+const (
+	STUN_REQ_TYPE_PING     = iota // PING测试
+	STUN_REQ_TYPE_FIREWALL        // 检测客户端防火墙
+)
+
 type StunMsg struct {
-	Addr string
+	ReqType int
+	Addr    string `json:"addr,omitempty"`
 }
 
 func StunServer() {
