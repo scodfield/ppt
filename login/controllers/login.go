@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"actor2/util"
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -21,17 +20,17 @@ func LoginHandler(r *gin.Engine) {
 	}
 }
 
-type PlayerReq struct {
+type PlayerReg struct {
 	Name string `form:"name" json:"name" binding:"required"`
 	Pass string `form:"pass" json:"pass" binding:"required"`
 }
 
 func AccRegistryHandler(c *gin.Context) {
-	var playerReq PlayerReq
-	if err := c.ShouldBind(&playerReq); err != nil {
+	var playerReg PlayerReg
+	if err := c.ShouldBind(&playerReg); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	existed, err := db.GetRedis().HSetNX(ctx, "table_acc", playerReq.Name, playerReq.Pass).Result()
+	existed, err := db.GetRedis().HSetNX(ctx, "table_acc", playerReg.Name, playerReg.Pass).Result()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -40,17 +39,29 @@ func AccRegistryHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"regResponse": "Acc has already registed"})
 		return
 	}
+	if UserID := db.GenerateUserID(); UserID > 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"loginResult": "Welcome aboard " + playerReg.Name,
+			"userID":      UserID,
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"loginResult": "Welcome aboard " + playerReq.Name,
+		"loginResult": "Sorry, something went wrong ",
 	})
 }
 
+type PlayerLogin struct {
+	Name string `form:"name" json:"name" binding:"required"`
+	ID   int64  `form:"id" json:"id" binding:"required"`
+}
+
 func AccLoginHandler(c *gin.Context) {
-	var playerReq PlayerReq
-	if err := c.ShouldBind(&playerReq); err != nil {
+	var playerLogin PlayerLogin
+	if err := c.ShouldBind(&playerLogin); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
-	_, err := db.GetRedis().HGet(ctx, "table_acc", playerReq.Name).Result()
+	_, err := db.GetRedis().HGet(ctx, "table_acc", playerLogin.Name).Result()
 	if errors.Is(err, redis.Nil) {
 		c.JSON(http.StatusOK, gin.H{
 			"loginResult": "Not registry",
@@ -60,10 +71,10 @@ func AccLoginHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	token := util.FormatTokenKey(playerReq.Name)
-	utils.UpdateToken(c, token)
+	//token := util.FormatTokenKey(playerLogin.Name)
+	token, _ := utils.GenerateToken(playerLogin.ID, playerLogin.Name)
 	c.JSON(http.StatusOK, gin.H{
-		"loginResult": "Welcome back " + playerReq.Name,
+		"loginResult": "Welcome back " + playerLogin.Name,
 		"token":       token,
 	})
 }

@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+var ctx = context.Background()
 var redisC *redis.Client
 var redisOnce sync.Once
 
@@ -36,4 +37,21 @@ func InitRedis() *redis.Client {
 	}
 	fmt.Printf("redis connect success, pong: %s\n", pong)
 	return redisC
+}
+
+func GenerateUserID() (newID int64) {
+	var locked bool
+	var count int
+	for !locked {
+		count++
+		locked, _ = redisC.SetNX(ctx, "uid_lock", "locked", 10*time.Second).Result()
+		if locked || count >= 10 {
+			break
+		}
+	}
+	if locked {
+		newID, _ = redisC.Incr(context.Background(), "uid").Result()
+		redisC.Del(ctx, "uid_lock")
+	}
+	return
 }
