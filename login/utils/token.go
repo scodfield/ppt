@@ -26,10 +26,19 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		//key := FormatTokenKey(name)
-		if _, err := ParseToken(token); err != nil {
+		custClaim, err := ParseToken(token)
+		if err != nil {
 			c.JSON(200, gin.H{
 				"code":     401,
 				"response": "invalid token",
+			})
+			c.Abort()
+			return
+		}
+		if !db.IsTokenOutOfDate(custClaim.ID) {
+			c.JSON(200, gin.H{
+				"code":     401,
+				"response": "token out of date",
 			})
 			c.Abort()
 			return

@@ -73,6 +73,7 @@ func AccLoginHandler(c *gin.Context) {
 	}
 	//token := util.FormatTokenKey(playerLogin.Name)
 	token, _ := utils.GenerateToken(playerLogin.ID, playerLogin.Name)
+	db.UpdateToken(playerLogin.ID, token)
 	c.JSON(http.StatusOK, gin.H{
 		"loginResult": "Welcome back " + playerLogin.Name,
 		"token":       token,

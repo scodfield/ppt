@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"log"
@@ -54,4 +55,23 @@ func GenerateUserID() (newID int64) {
 		redisC.Del(ctx, "uid_lock")
 	}
 	return
+}
+
+func UpdateToken(id int64, token string) {
+	redisC.Set(ctx, formatTokenKey(id), token, 24*time.Hour)
+}
+
+func formatTokenKey(id int64) string {
+	return fmt.Sprintf("token_%v", id)
+}
+
+func IsTokenOutOfDate(id int64) bool {
+	_, err := redisC.Get(ctx, formatTokenKey(id)).Result()
+	if errors.Is(err, redis.Nil) {
+		return false
+	} else if err != nil {
+		log.Fatal("Fail to get token:", err)
+		return false
+	}
+	return true
 }
