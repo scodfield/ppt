@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"log"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -42,56 +41,11 @@ func InitRedis() *redis.Client {
 }
 
 func GenerateUserID() (newID int64) {
-	if locked, expireTime := GetDistributedLock(); locked {
+	if locked, expireTime := GetDistributedLock(DISTRIBUTED_LOCK_USERID); locked {
 		newID, _ = redisC.Incr(context.Background(), "uid").Result()
-		DelDistributedLock(expireTime)
+		DelDistributedLock(DISTRIBUTED_LOCK_USERID, expireTime)
 	}
 	return
-}
-
-const MaxRetryTimes = 10
-
-func GetDistributedLock() (bool, int64) {
-	for i := 0; i < MaxRetryTimes; i++ {
-		newExpireTime := time.Now().Unix() + 10
-		if locked, _ := redisC.SetNX(ctx, "uid_lock", newExpireTime, 10*time.Second).Result(); locked {
-			return true, newExpireTime
-		}
-
-		oldExpireTimeStr, err := redisC.Get(ctx, "uid_lock").Result()
-		if errors.Is(err, redis.Nil) {
-			continue
-		} else if err != nil {
-			log.Println("Fail to get uid_lock:", err)
-			return false, 0
-		}
-		oldExpireTime, _ := strconv.ParseInt(oldExpireTimeStr, 10, 64)
-		if oldExpireTime > time.Now().Unix() {
-			continue
-		}
-
-		newExpireTime = time.Now().Unix() + 10
-		currentExpireTimeStr, _ := redisC.GetSet(ctx, "uid_lock", newExpireTime).Result()
-		currentExpireTime, _ := strconv.ParseInt(currentExpireTimeStr, 10, 64)
-		if currentExpireTime == newExpireTime {
-			return true, newExpireTime
-		}
-	}
-	return false, 0
-}
-
-func DelDistributedLock(expireTime int64) {
-	currentExpireTimeStr, err := redisC.Get(ctx, "uid_lock").Result()
-	if errors.Is(err, redis.Nil) {
-		return
-	} else if err != nil {
-		log.Println("Fail to get uid_lock:", err)
-		return
-	}
-	currentExpireTime, _ := strconv.ParseInt(currentExpireTimeStr, 10, 64)
-	if currentExpireTime == expireTime {
-		redisC.Del(ctx, "uid_lock")
-	}
 }
 
 func UpdateToken(id int64, token string) {
