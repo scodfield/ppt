@@ -8,9 +8,9 @@ import (
 )
 
 const DefaultMaxID int64 = 10000
-const DefaultStep int32 = 100
+const DefaultStep int64 = 100
 
-func GetFunctionMaxID(idType string) (int64, int32) {
+func GetFunctionMaxID(idType string) (int64, int64) {
 	var maxID int64 = -1
 	lockKey := DISTRIBUTED_LOCK_DBUFFER + idType
 	if locked, expireTime := GetDistributedLock(lockKey); locked {

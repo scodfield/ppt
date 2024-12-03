@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"ppt/login/db"
+	"sync"
 )
 
 var ctx = context.Background()
@@ -18,33 +19,37 @@ var DBuffer *DoubleBuffer
 
 type BasicID struct {
 	MaxID int64
-	Step  int32
+	Step  int64
 }
 
 type FunctionUUID struct {
-	Type       int
-	Buffer1    BasicID
-	Buffer2    BasicID
-	UseBuffer1 bool
+	Type        int
+	Buffer1     BasicID
+	Buffer2     BasicID
+	UseBuffer1  bool
+	Offset      int64
+	IsNewIDSync bool
+	sync.Mutex
+	syncMutex sync.Mutex
 }
 
 type DoubleBuffer struct {
-	Functions []FunctionUUID
+	Functions []*FunctionUUID
 }
 
 func InitDBuffer() {
 	DBuffer = &DoubleBuffer{
-		Functions: []FunctionUUID{},
+		Functions: []*FunctionUUID{},
 	}
 	for idType := UUID_TYPE_ITEMID; idType < UUID_TYPE_MAX; idType++ {
 		DBuffer.Functions = append(DBuffer.Functions, initFunctionID(idType))
 	}
 }
 
-func initFunctionID(id int) FunctionUUID {
+func initFunctionID(id int) *FunctionUUID {
 	idType := formatFunctionType(id)
 	maxID, step := db.GetFunctionMaxID(idType)
-	return FunctionUUID{
+	return &FunctionUUID{
 		Type: id,
 		Buffer1: BasicID{
 			MaxID: maxID,
@@ -56,4 +61,64 @@ func initFunctionID(id int) FunctionUUID {
 
 func formatFunctionType(idType int) string {
 	return fmt.Sprintf("global_uuid_%d", idType)
+}
+
+func GetUUIDByType(id int) (newID int64) {
+	var useFunction *FunctionUUID
+	var curStep int64
+	var isSwitch bool
+	for _, function := range DBuffer.Functions {
+		if function.Type != id {
+			continue
+		}
+
+		function.Lock()
+		if function.UseBuffer1 {
+			newID = function.Buffer1.MaxID + function.Offset
+			curStep = function.Buffer1.Step
+			if newID >= function.Buffer1.MaxID+function.Buffer1.Step-1 {
+				isSwitch = true
+				curStep = function.Buffer2.Step
+			}
+		} else {
+			newID = function.Buffer2.MaxID + function.Offset
+			curStep = function.Buffer2.Step
+			if newID >= function.Buffer2.MaxID+function.Buffer2.Step-1 {
+				isSwitch = true
+				curStep = function.Buffer1.Step
+			}
+		}
+		if isSwitch {
+			function.UseBuffer1 = !function.UseBuffer1
+			function.Offset = 0
+			function.IsNewIDSync = false
+		} else {
+			function.Offset++
+		}
+		function.Unlock()
+
+		useFunction = function
+		break
+	}
+	if useFunction.Offset >= (curStep/2) && !useFunction.IsNewIDSync {
+		go SyncNewID(useFunction)
+	}
+	return
+}
+
+func SyncNewID(function *FunctionUUID) {
+	function.syncMutex.Lock()
+	defer function.syncMutex.Unlock()
+	if !function.IsNewIDSync {
+		idType := formatFunctionType(function.Type)
+		maxID, step := db.GetFunctionMaxID(idType)
+		if function.UseBuffer1 {
+			function.Buffer2.MaxID = maxID
+			function.Buffer2.Step = step
+		} else {
+			function.Buffer1.MaxID = maxID
+			function.Buffer1.Step = step
+		}
+		function.IsNewIDSync = true
+	}
 }
