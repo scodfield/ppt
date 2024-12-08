@@ -15,9 +15,14 @@ var ctx = context.Background()
 func LoginHandler(r *gin.Engine) {
 	acc := r.Group("/account")
 	{
+		acc.GET("/login", LoginGetHandler)
 		acc.POST("/registry", AccRegistryHandler)
 		acc.POST("/login", AccLoginHandler)
 	}
+}
+
+func LoginGetHandler(c *gin.Context) {
+	c.HTML(http.StatusOK, "login.html", gin.H{})
 }
 
 type PlayerReg struct {
