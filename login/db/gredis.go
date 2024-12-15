@@ -111,6 +111,7 @@ func subloop(sub *subscriber) {
 
 const (
 	REDIS_CHANNEL_LOGIN_NOTICE = "login_notice"
+	REDIS_STREAM_TEST_STREAM   = "test_stream"
 )
 
 type subscriber struct {
@@ -144,4 +145,14 @@ func (s *subscriber) OnMessage(msg *redis.Message) {
 			log.Println("redis on pub_sub message error: unknown channel: ", msg.Channel)
 		}
 	}()
+}
+
+// TestStream
+func TestStream() {
+	redisC.XAdd(ctx, &redis.XAddArgs{
+		Stream: REDIS_STREAM_TEST_STREAM,
+		Values: map[string]interface{}{
+			"name": "ppt_001",
+		},
+	})
 }
