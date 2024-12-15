@@ -11,33 +11,46 @@ import (
 )
 
 var ctx = context.Background()
-var redisC *redis.Client
+var redisC, pubSubRedis *redis.Client
 var redisOnce sync.Once
 
 func GetRedis() *redis.Client {
 	return redisC
 }
 
+func GetPubSubRedis() *redis.Client {
+	return pubSubRedis
+}
+
 func InitRedis() *redis.Client {
 	redisOnce.Do(func() {
-		redisC = redis.NewClient(&redis.Options{
-			Addr:         "127.0.0.1:6379",
-			Password:     "",
-			DB:           0,
-			DialTimeout:  time.Second * 5,
-			ReadTimeout:  time.Second * 5,
-			WriteTimeout: time.Second * 5,
-			PoolSize:     10,
-			PoolTimeout:  time.Second * 5,
-		})
+		redisC, _ = initRedisClint("127.0.0.1", 6379, "", 0, 10)
+		pubSubRedis, _ = initRedisClint("127.0.0.1", 6379, "", 0, 0)
 	})
-	pong, err := redisC.Ping(context.Background()).Result()
+
+	initSubscribe()
+	fmt.Println("redis connect success.")
+	return redisC
+}
+
+func initRedisClint(host string, port int, password string, db, poolSize int) (*redis.Client, error) {
+	addr := fmt.Sprintf("%s:%d", host, port)
+	r := redis.NewClient(&redis.Options{
+		Addr:         addr,
+		Password:     password,
+		DB:           db,
+		DialTimeout:  time.Second * 5,
+		ReadTimeout:  time.Second * 5,
+		WriteTimeout: time.Second * 5,
+		PoolSize:     poolSize,
+		PoolTimeout:  time.Second * 5,
+	})
+	_, err := r.Ping(context.Background()).Result()
 	if err != nil {
 		log.Fatal("Fail to connect redis:", err)
-		return nil
+		return nil, err
 	}
-	fmt.Printf("redis connect success, pong: %s\n", pong)
-	return redisC
+	return r, nil
 }
 
 func GenerateUserID() (newID int64) {
@@ -65,4 +78,68 @@ func IsTokenOutOfDate(id int64) bool {
 		return false
 	}
 	return true
+}
+
+func initSubscribe() {
+	sub := &subscriber{
+		channels: []string{REDIS_CHANNEL_LOGIN_NOTICE},
+	}
+	go subloop(sub)
+}
+
+func subloop(sub *subscriber) {
+	go func() {
+		for {
+			ps := pubSubRedis.Subscribe(ctx, sub.Channels()...)
+			closed := false
+			for {
+				msg, err := ps.ReceiveMessage(ctx)
+				if err != nil {
+					closed = sub.OnError(err)
+					break
+				}
+				sub.OnMessage(msg)
+			}
+			if closed {
+				break
+			}
+		}
+	}()
+}
+
+const (
+	REDIS_CHANNEL_LOGIN_NOTICE = "login_notice"
+)
+
+type subscriber struct {
+	channels []string
+}
+
+func (s *subscriber) Channels() []string {
+	return s.channels
+}
+
+func (s *subscriber) OnError(err error) bool {
+	log.Println("redis pub sub error: ", err)
+	if errors.Is(err, redis.ErrClosed) {
+		return true
+	}
+	return false
+}
+
+func (s *subscriber) OnMessage(msg *redis.Message) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Fatal("redis on pub_sub message error: ", err)
+			}
+		}()
+
+		switch msg.Channel {
+		case REDIS_CHANNEL_LOGIN_NOTICE:
+			log.Printf("recv login_notice, payload:%s\n", msg.Payload)
+		default:
+			log.Println("redis on pub_sub message error: unknown channel: ", msg.Channel)
+		}
+	}()
 }
