@@ -100,6 +100,8 @@ func subloop(sub *subscriber) {
 				}
 				sub.OnMessage(msg)
 			}
+			_ = ps.Unsubscribe(ctx, sub.Channels()...)
+			_ = ps.Close()
 			if closed {
 				break
 			}
