@@ -1,5 +1,7 @@
 package pg
 
+import "context"
+
 type PgConfig struct {
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
@@ -8,3 +10,7 @@ type PgConfig struct {
 	SSLMode  string `json:"ssl_mode"`
 	Database string `json:"database"`
 }
+
+var (
+	Ctx = context.Background()
+)

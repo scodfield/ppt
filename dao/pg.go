@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"ppt/pg"
@@ -10,8 +11,9 @@ import (
 )
 
 var (
-	pgDB *gorm.DB
-	once sync.Once
+	pgDB    *gorm.DB
+	pgxPool *pgxpool.Pool
+	once    sync.Once
 )
 
 func InitPg(cfg *pg.PgConfig) error {
@@ -33,8 +35,34 @@ func InitPg(cfg *pg.PgConfig) error {
 			panic("Failed to connect to pg: " + err.Error())
 		}
 		pgDB = db
+		pgxPool, err = initPgxPool(dsn)
+		if err != nil {
+			panic("Failed to connect to pg: " + err.Error())
+		}
 	})
 	return nil
+}
+
+func initPgxPool(dsn string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+	// 连接池配置
+	config.MinConns = 10
+	config.MaxConns = 20
+	config.MaxConnLifetime = time.Minute * 10
+	config.MaxConnIdleTime = time.Minute * 5
+	config.HealthCheckPeriod = time.Second * 30
+
+	pool, err := pgxpool.NewWithConfig(pg.Ctx, config)
+	if err != nil {
+		return nil, err
+	}
+	if err = pool.Ping(pg.Ctx); err != nil {
+		return nil, err
+	}
+	return pool, nil
 }
 
 func ClosePg() {
