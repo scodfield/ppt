@@ -9,11 +9,13 @@ import (
 )
 
 type User struct {
-	ID       string `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID   int64  `gorm:"not null;uniqueIndex;column:user_id;comment:玩家UserID" json:"user_id"`
-	Username string `gorm:"not null;size:255;column:user_name;comment:玩家名" json:"user_name"`
-	Password string `gorm:"not null;size:255;column:password;comment:密码" json:"password"`
-	Email    string `gorm:"not null;uniqueIndex;size:255;column:email;comment:注册邮箱" json:"email"`
+	ID        string `gorm:"type:uuid;primaryKey" json:"id"`
+	UserID    int64  `gorm:"not null;uniqueIndex;column:user_id;comment:玩家UserID" json:"user_id"`
+	Username  string `gorm:"not null;size:255;column:user_name;comment:玩家名" json:"user_name"`
+	Password  string `gorm:"not null;size:255;column:password;comment:密码" json:"password"`
+	Email     string `gorm:"not null;uniqueIndex;size:255;column:email;comment:注册邮箱" json:"email"`
+	CreatedAt int64  `gorm:"autoCreateTime:milli;column:create_at;comment:创建时间" json:"created_at"`
+	UpdateAt  int64  `gorm:"autoUpdateTime:milli;column:update_at;comment:最后更新" json:"update_at"`
 }
 
 func (User) TableName() string {
