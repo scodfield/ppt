@@ -27,4 +27,10 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/gorm v1.25.11
+)
+
+require (
+	gorm.io/datatypes v1.2.5
+	gorm.io/driver/postgres v1.5.9
 )
