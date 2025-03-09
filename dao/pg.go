@@ -13,11 +13,11 @@ import (
 var (
 	pgDB    *gorm.DB
 	pgxPool *pgxpool.Pool
-	once    sync.Once
+	pgOnce  sync.Once
 )
 
 func InitPg(cfg *pg.PgConfig) error {
-	once.Do(func() {
+	pgOnce.Do(func() {
 		dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database, cfg.SSLMode)
 		pg := postgres.New(postgres.Config{DSN: dsn})
 		db, err := gorm.Open(pg, &gorm.Config{})
