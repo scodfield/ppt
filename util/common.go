@@ -1,11 +1,14 @@
 package util
 
 import (
+	"fmt"
 	"net/url"
+	"ppt/config"
 	"reflect"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // StructToMap 结构体转map[string]string
@@ -75,4 +78,11 @@ func SortAndConcat(params map[string]string) string {
 		strBuilder.WriteString(url.QueryEscape(filteredParams[k]))
 	}
 	return strBuilder.String()
+}
+
+// FormatESLogIndex 获取es索引
+func FormatESLogIndex(specTimeSec int64) string {
+	specTime := time.Unix(specTimeSec, 0)
+	y, m, d := specTime.Date()
+	return fmt.Sprintf("%s-%s-%04d-%02d-%02d", *config.AppName, *config.Env, y, m, d)
 }

@@ -17,7 +17,7 @@ func GetFunctionMaxID(idType string) (int64, int64) {
 		defer DelDistributedLock(lockKey, expireTime)
 		curMaxID, err := redisC.Get(ctx, idType).Result()
 		if errors.Is(err, redis.Nil) {
-			redisC.Set(ctx, idType, DefaultMaxID+int64(DefaultStep), 0)
+			redisC.Set(ctx, idType, DefaultMaxID+DefaultStep, 0)
 			return DefaultMaxID, DefaultStep
 		} else if err != nil {
 			log.Fatal("Get max id error: ", err)
