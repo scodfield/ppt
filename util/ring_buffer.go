@@ -58,6 +58,44 @@ func (rb *RingBuffer) remain() int {
 	return rb.bufferSize - rb.length()
 }
 
+func (rb *RingBuffer) check(length int) {
+	remain := rb.remain()
+	if remain < length {
+		rb.reallocateMemory(length)
+	}
+}
+
+func (rb *RingBuffer) reallocateMemory(size int) {
+	multi := ((size + rb.bufferSize) / rb.bufferSize) + 1
+	newBufferSize := rb.bufferSize * multi
+	tmpBuffer := make([]byte, newBufferSize)
+
+	if !rb.isEmpty {
+		offset := rb.header - rb.trailer
+		if offset > 0 {
+			copy(tmpBuffer, rb.buffer[:rb.trailer])
+			copy(tmpBuffer[(newBufferSize-(rb.bufferSize-rb.header)):], rb.buffer[rb.header:])
+			rb.header = newBufferSize - rb.bufferSize + rb.header
+		} else if offset < 0 {
+			copy(tmpBuffer[rb.header:rb.trailer], rb.buffer[rb.header:rb.trailer])
+		} else {
+			copy(tmpBuffer[0:], rb.buffer[rb.header:])
+			if rb.trailer != 0 {
+				copy(tmpBuffer[rb.bufferSize-rb.header:], rb.buffer[:rb.trailer])
+			}
+			rb.header = 0
+			rb.trailer = rb.bufferSize
+		}
+	}
+
+	rb.buffer = tmpBuffer
+	rb.bufferSize = newBufferSize
+	if rb.logHook != nil {
+		rb.logHook.Infof("ring buffer reallocate size", rb.bufferSize, rb.header, rb.trailer)
+	}
+
+}
+
 func (rb *RingBuffer) get(length int) []byte {
 	if length <= 0 || length > rb.bufferSize {
 		return nil
@@ -85,6 +123,11 @@ func (rb *RingBuffer) get(length int) []byte {
 		rb.isEmpty = true
 	}
 	return result
+}
+
+func (rb *RingBuffer) put(data []byte) {
+	rb.check(len(data))
+	
 }
 
 func (rb *RingBuffer) Length() int {
