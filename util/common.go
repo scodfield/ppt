@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net/url"
 	"ppt/config"
@@ -85,4 +86,16 @@ func FormatESLogIndex(specTimeSec int64) string {
 	specTime := time.Unix(specTimeSec, 0)
 	y, m, d := specTime.Date()
 	return fmt.Sprintf("%s-%s-%04d-%02d-%02d", *config.AppName, *config.Env, y, m, d)
+}
+
+// Int32ToBytes Int32转字节-小端序
+func Int32ToBytes(v int32) []byte {
+	res := make([]byte, 4)
+	binary.LittleEndian.PutUint32(res, uint32(v))
+	return res
+}
+
+// ByteToInt32 Byte转Int32-小端序
+func ByteToInt32(v []byte) int32 {
+	return int32(binary.LittleEndian.Uint32(v))
 }

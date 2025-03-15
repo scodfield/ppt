@@ -6,6 +6,7 @@ import (
 
 const (
 	RingBufferDefaultSize = 1024
+	FixedDataLengthHeader = 4
 )
 
 type Logger interface {
@@ -151,27 +152,41 @@ func (rb *RingBuffer) put(data []byte) {
 	rb.isEmpty = false
 }
 
+func (rb *RingBuffer) mark() {
+	rb.headerMark = rb.header
+	rb.trailerMark = rb.trailer
+}
+
+func (rb *RingBuffer) rollback() {
+	rb.header = rb.headerMark
+	rb.trailer = rb.trailerMark
+}
+
 func (rb *RingBuffer) Length() int {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	return rb.length()
 }
 
 func (rb *RingBuffer) Remain() int {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	return rb.remain()
 }
 
 func (rb *RingBuffer) IsEmpty() bool {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	return rb.isEmpty
 }
 
 func (rb *RingBuffer) Reset() {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	rb.header = 0
 	rb.headerMark = 0
 	rb.trailer = 0
@@ -182,21 +197,77 @@ func (rb *RingBuffer) Reset() {
 func (rb *RingBuffer) Get(length int) []byte {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	return rb.get(length)
 }
 
 func (rb *RingBuffer) Put(data []byte) {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
+
 	rb.put(data)
 }
 
-func (rb *RingBuffer) Read(v []byte) (int, error) {
+// 读指定长度数据
+func (rb *RingBuffer) Read(dest []byte) (int, error) {
 	rb.mu.Lock()
 	defer rb.mu.Unlock()
 
-	if rb.isEmpty || len(v) <= 0 {
+	if rb.isEmpty || len(dest) <= 0 {
 		return 0, nil
 	}
 
+	bufferLen := rb.length()
+	length := len(dest)
+	if length > bufferLen {
+		length = bufferLen
+	}
+
+	data := rb.get(length)
+	if data == nil || len(data) <= 0 {
+		return 0, nil
+	}
+	copy(dest, data)
+	return length, nil
+}
+
+// PutFixedData 定长数据,length位固定4byte
+func (rb *RingBuffer) PutFixedData(data []byte) {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+
+	length := len(data)
+	lengthByte := Int32ToBytes(int32(length))
+	rb.put(lengthByte)
+	rb.put(data)
+}
+
+// GetFixedData 获取定长数据(每调用一次返回一段定长数据)
+func (rb *RingBuffer) GetFixedData() []byte {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+
+	if rb.length() < FixedDataLengthHeader {
+		return nil
+	}
+
+	rb.mark()
+	lenByte := rb.get(FixedDataLengthHeader)
+	if lenByte == nil || len(lenByte) <= 0 {
+		rb.rollback()
+		return nil
+	}
+	dataLen := ByteToInt32(lenByte)
+	if int(dataLen)+FixedDataLengthHeader > rb.length() {
+		rb.rollback()
+		return nil
+	}
+
+	result := rb.get(int(dataLen))
+	if result == nil {
+		rb.rollback()
+		return nil
+	}
+
+	return result
 }
