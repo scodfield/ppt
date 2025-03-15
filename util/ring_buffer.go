@@ -73,16 +73,21 @@ func (rb *RingBuffer) reallocateMemory(size int) {
 	if !rb.isEmpty {
 		offset := rb.header - rb.trailer
 		if offset > 0 {
+			// 头后尾前
 			copy(tmpBuffer, rb.buffer[:rb.trailer])
 			copy(tmpBuffer[(newBufferSize-(rb.bufferSize-rb.header)):], rb.buffer[rb.header:])
 			rb.header = newBufferSize - rb.bufferSize + rb.header
 		} else if offset < 0 {
+			// 头前尾后
 			copy(tmpBuffer[rb.header:rb.trailer], rb.buffer[rb.header:rb.trailer])
 		} else {
+			// 先copy头部
 			copy(tmpBuffer[0:], rb.buffer[rb.header:])
 			if rb.trailer != 0 {
+				// 再copy尾部
 				copy(tmpBuffer[rb.bufferSize-rb.header:], rb.buffer[:rb.trailer])
 			}
+			// 更新头尾
 			rb.header = 0
 			rb.trailer = rb.bufferSize
 		}
@@ -126,8 +131,24 @@ func (rb *RingBuffer) get(length int) []byte {
 }
 
 func (rb *RingBuffer) put(data []byte) {
+	// 预检,保证有足够空间
 	rb.check(len(data))
-	
+
+	trailRemain := rb.bufferSize - rb.trailer
+	if trailRemain < len(data) {
+		if trailRemain <= 0 {
+			// 尾部无空间
+			copy(rb.buffer, data)
+		} else {
+			// 尾部有空间,分两次copy
+			copy(rb.buffer[rb.trailer:], data[:trailRemain])
+			copy(rb.buffer[0:], data[trailRemain:])
+		}
+	} else {
+		copy(rb.buffer[rb.trailer:], data)
+	}
+	rb.trailer = (rb.trailer + len(data)) % rb.bufferSize
+	rb.isEmpty = false
 }
 
 func (rb *RingBuffer) Length() int {
@@ -156,6 +177,18 @@ func (rb *RingBuffer) Reset() {
 	rb.trailer = 0
 	rb.trailerMark = 0
 	rb.isEmpty = true
+}
+
+func (rb *RingBuffer) Get(length int) []byte {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+	return rb.get(length)
+}
+
+func (rb *RingBuffer) Put(data []byte) {
+	rb.mu.Lock()
+	defer rb.mu.Unlock()
+	rb.put(data)
 }
 
 func (rb *RingBuffer) Read(v []byte) (int, error) {
