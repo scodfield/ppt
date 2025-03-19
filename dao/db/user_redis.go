@@ -8,10 +8,10 @@ import (
 )
 
 type UserLockRedis struct {
-	client *redis.UniversalClient
+	client redis.UniversalClient
 }
 
-func NewUserLockRedis(client *redis.UniversalClient) *UserLockRedis {
+func NewUserLockRedis(client redis.UniversalClient) *UserLockRedis {
 	return &UserLockRedis{client: client}
 }
 
