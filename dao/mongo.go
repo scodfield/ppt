@@ -14,13 +14,13 @@ var (
 	mongoOnce   sync.Once
 )
 
-func InitMongo(url string, secondaryPreferred bool) error {
+func InitMongo(mongoCfg *MongoConfig) error {
 	var err error
 	mongoOnce.Do(func() {
-		opts := options.Client().ApplyURI(url)
+		opts := options.Client().ApplyURI(mongoCfg.Url)
 		host, _ := os.Hostname()
 		opts.SetAppName(host + "-" + fmt.Sprintf("%d", os.Getpid()))
-		if secondaryPreferred {
+		if mongoCfg.SecondaryPreferred {
 			opts.SetReadPreference(readpref.SecondaryPreferred())
 		} else {
 			opts.SetReadPreference(readpref.Primary())

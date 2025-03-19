@@ -6,7 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gorm.io/gorm"
-	"ppt/pg"
+	"ppt/dao"
 )
 
 type User struct {
@@ -56,7 +56,7 @@ func InsertUsersByPgxPool(pgxPool *pgxpool.Pool, users []*User) error {
 		for _, user := range usersBatch {
 			batch.Queue(fmt.Sprintf(`insert into %s (id, user_id, user_name, password, emal) values ($1,$2,$3,$4,$5)`, userModel.TableName()), user.ID, user.UserID, user.Username, user.Password, user.Email)
 		}
-		err := pgxPool.SendBatch(pg.Ctx, batch).Close()
+		err := pgxPool.SendBatch(dao.Ctx, batch).Close()
 		if err != nil {
 			return err
 		}

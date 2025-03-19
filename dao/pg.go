@@ -5,7 +5,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"ppt/pg"
 	"sync"
 	"time"
 )
@@ -16,7 +15,7 @@ var (
 	pgOnce  sync.Once
 )
 
-func InitPg(cfg *pg.PgConfig) error {
+func InitPg(cfg *PgConfig) error {
 	pgOnce.Do(func() {
 		dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database, cfg.SSLMode)
 		pg := postgres.New(postgres.Config{DSN: dsn})
@@ -55,11 +54,11 @@ func initPgxPool(dsn string) (*pgxpool.Pool, error) {
 	config.MaxConnIdleTime = time.Minute * 5
 	config.HealthCheckPeriod = time.Second * 30
 
-	pool, err := pgxpool.NewWithConfig(pg.Ctx, config)
+	pool, err := pgxpool.NewWithConfig(Ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	if err = pool.Ping(pg.Ctx); err != nil {
+	if err = pool.Ping(Ctx); err != nil {
 		return nil, err
 	}
 	return pool, nil
