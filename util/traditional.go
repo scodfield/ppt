@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"github.com/Lofanmi/chinese-calendar-golang/calendar"
 	"time"
 )
 
@@ -151,14 +150,15 @@ func initShiChen() {
 
 // QZYS: 掐指一算--小六壬
 func QZYS(now time.Time) []string {
-	lunar := calendar.ByTimestamp(now.Unix()).Lunar
-	month, day, hour := lunar.GetMonth(), lunar.GetDay(), now.Hour()
-	sh := shiChen[hour]
-	if sh.Hour == 1 {
-		return []string{fmt.Sprintf("%s不占", sh.Name)}
-	}
-	first := int(month) % 6
-	second := (first + int(day)) % 6
-	third := (second + sh.Hour) % 6
-	return []string{xlr[first].String(), xlr[second].String(), xlr[third].String()}
+	//lunar := calendar.ByTimestamp(now.Unix()).Lunar
+	//month, day, hour := lunar.GetMonth(), lunar.GetDay(), now.Hour()
+	//sh := shiChen[hour]
+	//if sh.Hour == 1 {
+	//	return []string{fmt.Sprintf("%s不占", sh.Name)}
+	//}
+	//first := int(month) % 6
+	//second := (first + int(day)) % 6
+	//third := (second + sh.Hour) % 6
+	//return []string{xlr[first].String(), xlr[second].String(), xlr[third].String()}
+	return nil
 }
