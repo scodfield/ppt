@@ -28,7 +28,7 @@ func InitClickHouse(cfg *config.CKConfig) error {
 }
 
 func initCKGorm(cfg *config.CKConfig) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("http://%s:%s@%s/%s?dial_timeout=10s&read_timeout20s", cfg.UserName, cfg.Password, cfg.Url, cfg.Database)
+	dsn := fmt.Sprintf("http://%s:%s@%s/%s?dial_timeout=10s&read_timeout=20s", cfg.UserName, cfg.Password, cfg.Url, cfg.Database)
 	db, err := gorm.Open(clickhouse.New(clickhouse.Config{DSN: dsn}), &gorm.Config{})
 	if err != nil {
 		return nil, err
