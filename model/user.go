@@ -11,7 +11,7 @@ import (
 
 type User struct {
 	ID        string `gorm:"type:uuid;primaryKey" json:"id"`
-	UserID    int64  `gorm:"not null;uniqueIndex;column:user_id;comment:玩家UserID" json:"user_id"`
+	UserID    uint64 `gorm:"not null;uniqueIndex;column:user_id;comment:玩家UserID" json:"user_id"`
 	Username  string `gorm:"not null;size:255;column:user_name;comment:玩家名" json:"user_name"`
 	Password  string `gorm:"not null;size:255;column:password;comment:密码" json:"password"`
 	Email     string `gorm:"not null;uniqueIndex;size:255;column:email;comment:注册邮箱" json:"email"`
@@ -28,7 +28,7 @@ func MigrateUserModel(db *gorm.DB) error {
 }
 
 // CreateUser 创建用户
-func CreateUser(userID int64, userName, password, email string) (*User, error) {
+func CreateUser(userID uint64, userName, password, email string) (*User, error) {
 	uuidV7, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
@@ -62,4 +62,18 @@ func InsertUsersByPgxPool(pgxPool *pgxpool.Pool, users []*User) error {
 		}
 	}
 	return nil
+}
+
+// InsertUsersByBatch 批量创建用户
+func InsertUsersByBatch(pgDB *gorm.DB, users []*User) error {
+	return pgDB.CreateInBatches(&users, 200).Error
+}
+
+// GetUserByID 获取用户
+func GetUserByID(pgDB *gorm.DB, userID uint64) (*User, error) {
+	var user User
+	if err := pgDB.Where("user_id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
