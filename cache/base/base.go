@@ -94,6 +94,31 @@ func (c *cache[K, V]) delete(k K) (V, bool) {
 	return c.nilV, false
 }
 
+func (c *cache[K, V]) Get(k K) (V, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.get(k)
+}
+
+func (c *cache[K, V]) GetWithExpiration(k K) (V, time.Time, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	item, found := c.items[k]
+	if !found {
+		return c.nilV, time.Time{}, false
+	}
+	if item.Expiration > 0 {
+		if time.Now().UnixNano() > item.Expiration {
+			return c.nilV, time.Time{}, false
+		}
+		if c.isRefreshTTL {
+			item.Expiration = time.Now().Add(c.defaultExpiration).UnixNano()
+		}
+		return item.Object, time.Unix(0, item.Expiration), true
+	}
+	return item.Object, time.Time{}, false
+}
+
 func (c *cache[K, V]) Set(k K, v V, d time.Duration) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -104,12 +129,32 @@ func (c *cache[K, V]) SetDefault(k K, v V) {
 	c.Set(k, v, DefaultExpiration)
 }
 
+func (c *cache[K, V]) Delete(k K) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	v, evicted := c.delete(k)
+	if evicted {
+		c.onEvicted(k, v)
+	}
+}
+
 func (c *cache[K, V]) Add(k K, v V, d time.Duration) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	_, found := c.get(k)
 	if found {
 		return fmt.Errorf("item %s already exists", k)
+	}
+	c.set(k, v, d)
+	return nil
+}
+
+func (c *cache[K, V]) Replace(k K, v V, d time.Duration) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	_, found := c.get(k)
+	if !found {
+		return fmt.Errorf("item %s does not exist", k)
 	}
 	c.set(k, v, d)
 	return nil
@@ -139,10 +184,94 @@ func (c *cache[K, V]) DeleteExpired() {
 	}
 }
 
-func (c *cache[K, V]) StopJanitor() {
+// OnEvicted set optional function that is called when an item is evicted from the cache
+func (c *cache[K, V]) OnEvicted(f func(k K, v V)) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.onEvicted = f
+}
+
+func (c *cache[K, V]) Range(f func(k K, v V) bool) {
+	if f == nil {
+		return
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	isContinue := true
+	for k, v := range c.items {
+		isContinue = f(k, v.Object)
+		if !isContinue {
+			return
+		}
+	}
+}
+
+func (c *cache[K, V]) Items() map[K]*Item[V] {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	now := time.Now().UnixNano()
+	items := make(map[K]*Item[V])
+	for k, v := range c.items {
+		if v.Expiration > 0 && now > v.Expiration {
+			continue
+		}
+		items[k] = &Item[V]{}
+	}
+	return items
+}
+
+// ItemCount return the number of items in cache include expired but not cleaned up
+func (c *cache[K, V]) ItemCount() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return len(c.items)
+}
+
+func (c *cache[K, V]) Flush() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.items = make(map[K]*Item[V])
+}
+
+func runJanitor[K comparable, V any](c *cache[K, V], interval time.Duration) {
+	c.janitor = &janitor[K, V]{
+		Interval: interval,
+		stop:     make(chan bool),
+	}
+	go c.janitor.Run(c)
+}
+
+func newCache[K comparable, V any](de time.Duration, items map[K]*Item[V], isRefresh bool) *cache[K, V] {
+	if de == 0 {
+		de = NoExpiration
+	}
+	return &cache[K, V]{
+		defaultExpiration: de,
+		items:             items,
+		isRefreshTTL:      isRefresh,
+	}
+}
+
+func newCacheWithJanitor[K comparable, V any](de time.Duration, ci time.Duration, items map[K]*Item[V], isRefresh bool) *Cache[K, V] {
+	c := newCache(de, items, isRefresh)
+	C := &Cache[K, V]{
+		c,
+	}
+	if ci > 0 {
+		runJanitor(c, ci)
+	}
+	return C
+}
+
+func (c *Cache[K, V]) StopJanitor() {
 	c.janitor.stop <- true
 }
 
 type Cache[K comparable, V any] struct {
 	*cache[K, V]
+}
+
+func New[K comparable, V any](defaultExpiration, cleanupInterval time.Duration, isRefresh bool) *Cache[K, V] {
+	items := make(map[K]*Item[V])
+	return newCacheWithJanitor[K, V](defaultExpiration, cleanupInterval, items, isRefresh)
 }
