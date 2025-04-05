@@ -15,6 +15,9 @@ type User struct {
 	Username  string `gorm:"not null;size:255;column:user_name;comment:玩家名" json:"user_name"`
 	Password  string `gorm:"not null;size:255;column:password;comment:密码" json:"password"`
 	Email     string `gorm:"not null;uniqueIndex;size:255;column:email;comment:注册邮箱" json:"email"`
+	BrandID   int32  `gorm:"not null;column:brand_id;comment:品牌" json:"brand_id"`
+	Channel   string `gorm:"not null;column:channel;comment:渠道" json:"channel"`
+	Lang      string `gorm:"not null;column:lang;comment:语言包" json:"lang"`
 	CreatedAt int64  `gorm:"autoCreateTime:milli;column:create_at;comment:创建时间" json:"created_at"`
 	UpdateAt  int64  `gorm:"autoUpdateTime:milli;column:update_at;comment:最后更新" json:"update_at"`
 }
@@ -73,6 +76,14 @@ func InsertUsersByBatch(pgDB *gorm.DB, users []*User) error {
 func GetUserByID(pgDB *gorm.DB, userID uint64) (*User, error) {
 	var user User
 	if err := pgDB.Where("user_id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func GetUserSpecifyFieldsByID(pgDB *gorm.DB, userID uint64, fields []string) (*User, error) {
+	var user User
+	if err := pgDB.Where("user_id = ?", userID).Select(fields).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
