@@ -3,13 +3,13 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"ppt/login/utils"
+	"ppt/util"
 )
 
 func AdminHandler(r *gin.Engine) {
 	admin := r.Group("/admin")
 	{
-		admin.Use(utils.AuthMiddleware())
+		admin.Use(util.AuthMiddleware())
 		admin.POST("/", AdminMain)
 	}
 }

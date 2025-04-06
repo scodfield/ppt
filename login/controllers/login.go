@@ -7,7 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"net/http"
 	"ppt/login/db"
-	"ppt/login/utils"
+	"ppt/util"
 )
 
 var ctx = context.Background()
@@ -77,7 +77,7 @@ func AccLoginHandler(c *gin.Context) {
 		return
 	}
 	//token := util.FormatTokenKey(playerLogin.Name)
-	token, _ := utils.GenerateToken(playerLogin.ID, playerLogin.Name)
+	token, _ := util.GenerateToken(playerLogin.ID, playerLogin.Name)
 	db.UpdateToken(playerLogin.ID, token)
 	c.JSON(http.StatusOK, gin.H{
 		"loginResult": "Welcome back " + playerLogin.Name,
