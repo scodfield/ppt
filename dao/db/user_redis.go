@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -32,7 +33,7 @@ func GetActiveUsers(client redis.UniversalClient, key string) ([]uint64, error) 
 		var result []string
 		result, cursor, err = client.SScan(dao.Ctx, key, cursor, "*", int64(scanSize)).Result()
 		if err != nil {
-			logger.Error("GetActiveUsers redis scan error", zap.String("scan_key", key), zap.Error(err))
+			logger.Error("GetActiveUsers redis scan error", zap.String("redis_key", key), zap.Error(err))
 			return nil, err
 		}
 		for _, v := range result {
@@ -48,4 +49,40 @@ func GetActiveUsers(client redis.UniversalClient, key string) ([]uint64, error) 
 		}
 	}
 	return users, nil
+}
+
+func SetActiveUsers(client redis.UniversalClient, key string, users []uint64) error {
+	usersInterface := make([]interface{}, len(users))
+	for i, v := range users {
+		usersInterface[i] = v
+	}
+	_, err := client.SAdd(dao.Ctx, key, usersInterface...).Result()
+	if err != nil {
+		logger.Error("SetActiveUsers redis SADD error", zap.String("redis_key", key), zap.Uint64s("users", users), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func IsActiveUser(client redis.UniversalClient, key string, userID uint64) (bool, error) {
+	exists, err := client.SIsMember(dao.Ctx, key, userID).Result()
+	if err != nil {
+		logger.Error("IsActiveUser redis SIsMember error", zap.String("redis_key", key), zap.Uint64("user_id", userID), zap.Error(err))
+		return false, err
+	}
+	return exists, nil
+}
+
+func NewDynamicNotice(client redis.UniversalClient, key string, userID uint64, data map[string]interface{}) error {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		logger.Error("NewDynamicNotice json marshal error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Any("notice_data", data), zap.Error(err))
+		return err
+	}
+	err = client.Publish(dao.Ctx, key, jsonData).Err()
+	if err != nil {
+		logger.Error("NewDynamicNotice publish error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Error(err))
+		return err
+	}
+	return nil
 }
