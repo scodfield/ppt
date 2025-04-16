@@ -1,7 +1,10 @@
 package db
 
 import (
+	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+	"ppt/logger"
 	model2 "ppt/model"
 )
 
@@ -45,4 +48,29 @@ func (m *UserMailDao) GetUserMails(userID uint64) ([]*model2.UserMail, error) {
 		return nil, err
 	}
 	return userMails, nil
+}
+
+// CreateMailsInBatch 批量插入邮件
+func (m *UserMailDao) CreateMailsInBatch(userMail []*model2.UserMail) error {
+	return m.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "user_id"},
+			{Name: "template_id"},
+		},
+		DoNothing: true,
+	}).CreateInBatches(&userMail, 1000).Error
+}
+
+// CreateMailsByFirstOrCreate 插入邮件
+func (m *UserMailDao) CreateMailsByFirstOrCreate(userMail []*model2.UserMail) error {
+	var err error
+	for _, mail := range userMail {
+		result := m.db.FirstOrCreate(&mail, model2.UserMail{UserID: mail.UserID, TemplateID: mail.TemplateID})
+		if result.Error != nil {
+			err = result.Error
+			logger.Error("UserMailDao.CreateMailsByFirstOrCreate first_or_create", zap.Error(result.Error))
+			continue
+		}
+	}
+	return err
 }
