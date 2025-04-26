@@ -40,28 +40,26 @@ func InitKafkaConsumerClient(bootstrapUrls []string, groupID, clientID, topic st
 }
 
 func StartConsumerLoop() {
-	var cnt int
-	for ev := range ConsumerClient.Events() {
-		switch e := ev.(type) {
-		case *kafka.Message:
-			if e.TopicPartition.Error != nil {
-				fmt.Printf("Delivery failed: %v\n", e.TopicPartition.Error)
-				continue
+	go func() {
+		var cnt int
+		for ev := range ConsumerClient.Events() {
+			switch e := ev.(type) {
+			case *kafka.Message:
+				if e.TopicPartition.Error != nil {
+					logger.Error("StartConsumerLoop Delivery failed", zap.Error(e.TopicPartition.Error))
+					continue
+				}
+				cnt++
+				_ = pool.GetConsumerPool().Submit(func() {
+					processKafkaMessage(e, cnt >= ProcessBatchSize)
+				})
+			case *kafka.Error:
+				logger.Error("StartConsumerLoop Delivery failed: %v\n", zap.Error(e))
+				break
 			}
-			cnt++
-			_ = pool.GetConsumerPool().Submit(func() {
-				processKafkaMessage(e, cnt >= ProcessBatchSize)
-			})
-		case *kafka.Error:
-			fmt.Printf("Delivery failed: %v\n", e)
-			break
 		}
-	}
-	fmt.Println("kafka consumer loop exit")
-	err := ConsumerClient.Close()
-	if err != nil {
-		fmt.Printf("Consumer close failed: %v\n", err)
-	}
+		logger.Info("StartConsumerLoop kafka consumer loop exit")
+	}()
 }
 
 func processKafkaMessage(msg *kafka.Message, isCommit bool) {
@@ -95,6 +93,24 @@ func InitKafkaProducerClient(bootstrapUrls []string, groupID, clientID, topic st
 	return nil
 }
 
+func StartKafkaProducerLoop(producer *kafka.Producer) {
+	go func() {
+		for ev := range producer.Events() {
+			switch e := ev.(type) {
+			case *kafka.Message:
+				if e.TopicPartition.Error != nil {
+					logger.Error("StartKafkaProducerLoop delivery err", zap.Error(e.TopicPartition.Error))
+				} else {
+					logger.Info("StartKafkaProducerLoop success delivered message", zap.Any("topic_partition", e.TopicPartition))
+				}
+			case kafka.Error:
+				logger.Error("StartKafkaProducerLoop kafka err", zap.Error(e))
+			}
+		}
+		logger.Info("StartKafkaProducerLoop kafka producer loop exit")
+	}()
+}
+
 func GetKafkaClientID(serviceName string) string {
 	return fmt.Sprintf("%s-%s-%s-%s", config.AppName, config.Env, config.HostName, serviceName)
 }
@@ -103,11 +119,26 @@ func GetKafkaTopic(serviceName string) string {
 	return fmt.Sprintf("%s-%s-%s", config.AppName, config.Env, serviceName)
 }
 
-func CloseKafka() {
+func CloseKafkaClient() {
 	if ConsumerClient != nil {
 		_ = ConsumerClient.Close()
 	}
 	if ProducerClient != nil {
 		ProducerClient.Close()
 	}
+}
+
+func SendKafkaMessage(topic string, message []byte) {
+	msg := &kafka.Message{
+		TopicPartition: kafka.TopicPartition{
+			Topic:     &topic,
+			Partition: kafka.PartitionAny,
+		},
+		Value: message,
+	}
+	err := ProducerClient.Produce(msg, nil)
+	if err != nil {
+		logger.Error("SendKafkaMessage produce error", zap.Error(err))
+	}
+	ProducerClient.Flush(0)
 }
