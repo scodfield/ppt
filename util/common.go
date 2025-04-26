@@ -85,7 +85,7 @@ func SortAndConcat(params map[string]string) string {
 func FormatESLogIndex(specTimeSec int64) string {
 	specTime := time.Unix(specTimeSec, 0)
 	y, m, d := specTime.Date()
-	return fmt.Sprintf("%s-%s-%04d-%02d-%02d", *config.AppName, *config.Env, y, m, d)
+	return fmt.Sprintf("%s-%s-%04d-%02d-%02d", config.AppName, config.Env, y, m, d)
 }
 
 // Int32ToBytes Int32转字节-小端序
