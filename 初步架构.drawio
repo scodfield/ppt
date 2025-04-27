@@ -1,94 +1,94 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" version="26.2.14">
   <diagram name="第 1 页" id="ZMwy50mZ1iB9Qospq7xE">
-    <mxGraphModel dx="867" dy="500" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="867" dy="-669" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-11" value="API System" style="sketch=0;outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_availability_zone;strokeColor=#545B64;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#545B64;dashed=1;dashPattern=8 8;" vertex="1" parent="1">
-          <mxGeometry x="240" y="80" width="320" height="320" as="geometry" />
+          <mxGeometry x="220" y="2340" width="320" height="320" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-12" value="" style="verticalLabelPosition=bottom;sketch=0;html=1;fillColor=#A153A0;strokeColor=#ffffff;verticalAlign=top;align=center;points=[[0,0.5,0],[0.125,0.25,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[0.875,0.25,0],[1,0.5,0],[0.875,0.75,0],[0.75,1,0],[0.5,1,0],[0.125,0.75,0]];pointerEvents=1;shape=mxgraph.cisco_safe.compositeIcon;bgIcon=mxgraph.cisco_safe.design.blank_device;resIcon=mxgraph.cisco_safe.design.router;" vertex="1" parent="1">
-          <mxGeometry x="377.5" y="60" width="45" height="40" as="geometry" />
+          <mxGeometry x="357.5" y="2320" width="45" height="40" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-13" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;游戏列表服务&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="280" y="130" width="60" height="30" as="geometry" />
+          <mxGeometry x="260" y="2390" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-14" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;中转服务1...N&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="440" y="130" width="60" height="30" as="geometry" />
+          <mxGeometry x="420" y="2390" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-15" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;Nginx转发&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="420" y="200" width="80" height="40" as="geometry" />
+          <mxGeometry x="400" y="2460" width="80" height="40" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-16" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;TCG API服务&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="280" y="280" width="60" height="30" as="geometry" />
+          <mxGeometry x="260" y="2540" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-17" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;WE API服务&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="450" y="280" width="60" height="30" as="geometry" />
+          <mxGeometry x="430" y="2540" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-18" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;Nginx转发&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="360" y="380" width="80" height="40" as="geometry" />
+          <mxGeometry x="340" y="2640" width="80" height="40" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-19" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;TCG三方&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="280" y="490" width="60" height="30" as="geometry" />
+          <mxGeometry x="260" y="2750" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-20" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;WE三方&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="450" y="490" width="60" height="30" as="geometry" />
+          <mxGeometry x="430" y="2750" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-31" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.333;entryY=1.043;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" target="oZGS_SfJE_ZFE-Jzg_C2-17">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="400" y="380" as="sourcePoint" />
-            <mxPoint x="480" y="300" as="targetPoint" />
+            <mxPoint x="380" y="2640" as="sourcePoint" />
+            <mxPoint x="460" y="2560" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="400" y="360" />
-              <mxPoint x="470" y="360" />
+              <mxPoint x="380" y="2620" />
+              <mxPoint x="450" y="2620" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-32" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.666;entryY=1.029;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-18" target="oZGS_SfJE_ZFE-Jzg_C2-16">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="440" y="330" as="sourcePoint" />
-            <mxPoint x="310" y="300" as="targetPoint" />
+            <mxPoint x="420" y="2590" as="sourcePoint" />
+            <mxPoint x="290" y="2560" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="400" y="360" />
-              <mxPoint x="320" y="360" />
+              <mxPoint x="380" y="2620" />
+              <mxPoint x="300" y="2620" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-33" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.333;exitY=1.014;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.354;entryY=-0.014;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-16" target="oZGS_SfJE_ZFE-Jzg_C2-19">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="440" y="290" as="sourcePoint" />
-            <mxPoint x="310" y="490" as="targetPoint" />
+            <mxPoint x="420" y="2550" as="sourcePoint" />
+            <mxPoint x="290" y="2750" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-34" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.666;exitY=1.014;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.659;entryY=-0.014;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-17" target="oZGS_SfJE_ZFE-Jzg_C2-20">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="440" y="290" as="sourcePoint" />
-            <mxPoint x="480" y="490" as="targetPoint" />
+            <mxPoint x="420" y="2550" as="sourcePoint" />
+            <mxPoint x="460" y="2750" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-35" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.34;entryY=1.043;entryDx=0;entryDy=0;dashed=1;exitX=0.333;exitY=0.014;exitDx=0;exitDy=0;entryPerimeter=0;exitPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-16" target="oZGS_SfJE_ZFE-Jzg_C2-46">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="320" y="280" as="sourcePoint" />
-            <mxPoint x="400" y="240" as="targetPoint" />
+            <mxPoint x="300" y="2540" as="sourcePoint" />
+            <mxPoint x="380" y="2500" as="targetPoint" />
             <Array as="points" />
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-36" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.325;exitY=0;exitDx=0;exitDy=0;exitPerimeter=0;dashed=1;entryX=0.63;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-17" target="oZGS_SfJE_ZFE-Jzg_C2-15">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="440" y="260" as="sourcePoint" />
-            <mxPoint x="410" y="240" as="targetPoint" />
+            <mxPoint x="420" y="2520" as="sourcePoint" />
+            <mxPoint x="390" y="2500" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="470" y="260" />
+              <mxPoint x="450" y="2520" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-39" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.63;exitY=-0.022;exitDx=0;exitDy=0;exitPerimeter=0;dashed=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="480.18000000000006" y="199.12" as="sourcePoint" />
-            <mxPoint x="479.78" y="160" as="targetPoint" />
+            <mxPoint x="460.18000000000006" y="2459.12" as="sourcePoint" />
+            <mxPoint x="459.78" y="2420" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="479.78" y="180" />
-              <mxPoint x="479.78" y="170" />
+              <mxPoint x="459.78" y="2440" />
+              <mxPoint x="459.78" y="2430" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -97,62 +97,62 @@
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-41" value="" style="endArrow=classic;html=1;rounded=0;dashed=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="320" y="487" as="sourcePoint" />
-            <mxPoint x="400" y="420" as="targetPoint" />
+            <mxPoint x="300" y="2747" as="sourcePoint" />
+            <mxPoint x="380" y="2680" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="320" y="450" />
-              <mxPoint x="400" y="450" />
+              <mxPoint x="300" y="2710" />
+              <mxPoint x="380" y="2710" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-43" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.333;exitY=-0.014;exitDx=0;exitDy=0;exitPerimeter=0;dashed=1;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-20">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="410" y="300" as="sourcePoint" />
-            <mxPoint x="400" y="420" as="targetPoint" />
+            <mxPoint x="390" y="2560" as="sourcePoint" />
+            <mxPoint x="380" y="2680" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="470" y="450" />
-              <mxPoint x="400" y="450" />
+              <mxPoint x="450" y="2710" />
+              <mxPoint x="380" y="2710" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-45" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="oZGS_SfJE_ZFE-Jzg_C2-15">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="460" y="161" as="sourcePoint" />
-            <mxPoint x="480" y="180" as="targetPoint" />
+            <mxPoint x="440" y="2421" as="sourcePoint" />
+            <mxPoint x="460" y="2440" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="460" y="170" />
-              <mxPoint x="460" y="180" />
+              <mxPoint x="440" y="2430" />
+              <mxPoint x="440" y="2440" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-46" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;Redis&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="280" y="200" width="60" height="40" as="geometry" />
+          <mxGeometry x="260" y="2460" width="60" height="40" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-47" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.38;entryY=1;entryDx=0;entryDy=0;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-16" target="oZGS_SfJE_ZFE-Jzg_C2-15">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="320" y="290" as="sourcePoint" />
-            <mxPoint x="320" y="250" as="targetPoint" />
+            <mxPoint x="300" y="2550" as="sourcePoint" />
+            <mxPoint x="300" y="2510" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="310" y="260" />
-              <mxPoint x="390" y="260" />
-              <mxPoint x="450" y="260" />
+              <mxPoint x="290" y="2520" />
+              <mxPoint x="370" y="2520" />
+              <mxPoint x="430" y="2520" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-48" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;dashed=1;entryX=0.68;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-17" target="oZGS_SfJE_ZFE-Jzg_C2-46">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
-            <mxPoint x="377.5" y="280" as="sourcePoint" />
-            <mxPoint x="317.5" y="240" as="targetPoint" />
+            <mxPoint x="357.5" y="2540" as="sourcePoint" />
+            <mxPoint x="297.5" y="2500" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="480" y="270" />
-              <mxPoint x="321" y="270" />
+              <mxPoint x="460" y="2530" />
+              <mxPoint x="301" y="2530" />
             </Array>
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-49" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="oZGS_SfJE_ZFE-Jzg_C2-46" target="oZGS_SfJE_ZFE-Jzg_C2-13">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="410" y="300" as="sourcePoint" />
-            <mxPoint x="510" y="300" as="targetPoint" />
+            <mxPoint x="390" y="2560" as="sourcePoint" />
+            <mxPoint x="490" y="2560" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-50" value="&lt;font style=&quot;font-size: 8px;&quot;&gt;Pub/Sub&lt;/font&gt;" style="edgeLabel;resizable=0;html=1;;align=center;verticalAlign=middle;" connectable="0" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-49">
