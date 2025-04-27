@@ -352,7 +352,7 @@
           <mxGeometry y="30" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-105" value="API 中转服务" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="200" y="2360" width="120" height="90" as="geometry" />
+          <mxGeometry x="200" y="2360" width="120" height="120" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-106" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;大厅账号服务&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-105">
           <mxGeometry y="30" width="120" height="30" as="geometry" />
@@ -360,8 +360,11 @@
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-107" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;大厅回调服务&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-105">
           <mxGeometry y="60" width="120" height="30" as="geometry" />
         </mxCell>
+        <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-124" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;记录注册信息&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-105">
+          <mxGeometry y="90" width="120" height="30" as="geometry" />
+        </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-109" value="TCG API服务" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="40" y="2480" width="120" height="210" as="geometry" />
+          <mxGeometry x="40" y="2520" width="120" height="210" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-110" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;创建/确认玩家接口&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-109">
           <mxGeometry y="30" width="120" height="30" as="geometry" />
@@ -382,7 +385,7 @@
           <mxGeometry y="180" width="120" height="30" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-117" value="WE API服务" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="200" y="2480" width="120" height="210" as="geometry" />
+          <mxGeometry x="199" y="2520" width="120" height="210" as="geometry" />
         </mxCell>
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-118" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;登入游戏&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-117">
           <mxGeometry y="30" width="120" height="30" as="geometry" />
@@ -399,7 +402,7 @@
         <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-122" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;投注纪录&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-117">
           <mxGeometry y="150" width="120" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-123" value="&lt;font style=&quot;font-size: 9px;&quot;&gt;...&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-117">
+        <mxCell id="oZGS_SfJE_ZFE-Jzg_C2-123" value="&lt;font style=&quot;font-size: 12px;&quot;&gt;...&lt;/font&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" vertex="1" parent="oZGS_SfJE_ZFE-Jzg_C2-117">
           <mxGeometry y="180" width="120" height="30" as="geometry" />
         </mxCell>
       </root>
