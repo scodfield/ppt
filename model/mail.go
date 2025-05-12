@@ -31,8 +31,16 @@ type UserMail struct {
 	BaseModel
 	UserID          uint64                  `gorm:"not null;column:user_id;comment:用户UserID" json:"user_id"`
 	TemplateID      string                  `gorm:"not null;column:template_id;comment:邮件模板ID" json:"template_id"`
+	Awards          datatypes.JSON          `gorm:"column:awards;comment:奖励附件" json:"awards"`
 	ExpiredTime     int64                   `gorm:"not null;column:expired_time;comment:过期时间" json:"expired_time"`
 	ReadStatus      MailReadStatusType      `gorm:"not null;type:integer;default:0;column:read_status;comment:读取状态" json:"read_status"`
 	AccessoryStatus MailAccessoryStatusType `gorm:"not null;type:integer;default:0;column:accessory_status;comment:附件状态" json:"accessory_status"`
 	VisibleStatus   MailVisibleStatusType   `gorm:"not null;type:integer;default:0;column:visible_status;comment:可见性状态" json:"visible_status"`
+	CreateTime      int64                   `gorm:"autoCreateTime:milli;column:create_time;comment:创建时间" json:"create_time"`
+	UpdateTime      int64                   `gorm:"autoUpdateTime:milli;column:update_time;comment:更新时间" json:"update_time"`
+	Operator        string                  `gorm:"not null;column:operator;comment:操作人" json:"operator"`
+}
+
+func (UserMail) TableName() string {
+	return "user_mail"
 }
