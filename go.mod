@@ -40,6 +40,7 @@ require (
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/panjf2000/ants/v2 v2.11.2
 	github.com/prometheus/client_golang v1.21.1
+	go.uber.org/zap v1.27.0
 	gorm.io/datatypes v1.2.5
 	gorm.io/driver/clickhouse v0.6.1
 	gorm.io/driver/postgres v1.5.9
@@ -100,7 +101,6 @@ require (
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
-	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.33.0 // indirect

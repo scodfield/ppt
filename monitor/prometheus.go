@@ -21,9 +21,34 @@ var (
 		Name:      "thd_gauge_test",
 		Help:      "The total number of gauge",
 	})
+	RequestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "req_duration_seconds",
+			Help:    "request process duration in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"path"})
+	RequestCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "req_count",
+			Help: "count of requests",
+		},
+		[]string{"path"})
+	RequestStatusCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "req_status_count",
+			Help: "count of requests status code",
+		},
+		[]string{"path", "code"})
+	RequestMethodCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "req_method_count",
+			Help: "count of requests method",
+		},
+		[]string{"path", "method"})
 )
 
-// startPrometheus: 启动监控
+// StartPrometheus 启动监控
 func StartPrometheus() {
 	reg := prometheus.NewRegistry()
 	initPromRegistry(reg)
@@ -37,6 +62,10 @@ func StartPrometheus() {
 func initPromRegistry(reg *prometheus.Registry) {
 	reg.MustRegister(counter)
 	reg.MustRegister(gauge)
+	reg.MustRegister(RequestDuration)
+	reg.MustRegister(RequestCount)
+	reg.MustRegister(RequestStatusCount)
+	reg.MustRegister(RequestMethodCount)
 	reg.MustRegister(collectors.NewGoCollector())
 }
 
