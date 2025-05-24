@@ -42,15 +42,15 @@ func PKCS7UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
-func EcbEncrypt(data []byte, key string) ([]byte, error) {
+func EcbEncrypt(data []byte, key string) (string, error) {
 	// base64字符串转Byte
 	keyByte, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	block, err := aes.NewCipher(keyByte)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	// 填充为block的整数倍
 	data = PKCS7Padding(data, block.BlockSize())
@@ -60,10 +60,11 @@ func EcbEncrypt(data []byte, key string) ([]byte, error) {
 	for bs, be := 0, size; bs < len(data); bs, be = bs+size, be+size {
 		block.Encrypt(ciphertext[bs:be], data[bs:be])
 	}
-	return ciphertext, nil
+	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-func EcbDecrypt(data []byte, key string) ([]byte, error) {
+func EcbDecrypt(cipherStr, key string) ([]byte, error) {
+	data, _ := base64.StdEncoding.DecodeString(cipherStr)
 	// base64字符串转Byte
 	keyByte, err := base64.StdEncoding.DecodeString(key)
 	if err != nil {
