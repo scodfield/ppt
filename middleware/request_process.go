@@ -68,7 +68,7 @@ func RequestCheckSign() gin.HandlerFunc {
 		calcSign := util.SignSHA256WithKey(originParams, SHA256SignKey)
 		if sign != calcSign {
 			logger.Error("RequestCheckSign sign not match", zap.String("req_sign", sign), zap.String("origin_params", originParams), zap.String("calc_sign", calcSign))
-			c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10002, "error": err.Error()})
+			c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10003, "error": "sign not match"})
 			c.Abort()
 			return
 		}
