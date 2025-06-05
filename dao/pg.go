@@ -5,6 +5,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"ppt/config"
 	"sync"
 	"time"
 )
@@ -33,7 +35,11 @@ func InitPg(cfg *PgConfig) error {
 		if err = sqlDB.Ping(); err != nil {
 			panic("Failed to connect to pg: " + err.Error())
 		}
-		pgDB = db
+		pgDB = db.Debug()
+		if config.Env != "test" {
+			pgDB.Logger = logger.Default.LogMode(logger.Silent)
+		}
+
 		pgxPool, err = initPgxPool(dsn)
 		if err != nil {
 			panic("Failed to connect to pg: " + err.Error())
@@ -74,8 +80,16 @@ func ClosePg() {
 		_ = sqlDB.Close()
 		pgDB = nil
 	}
+	if pgxPool != nil {
+		pgxPool.Close()
+		pgxPool = nil
+	}
 }
 
 func GetPgDB() *gorm.DB {
 	return pgDB
+}
+
+func GetPgxPool() *pgxpool.Pool {
+	return pgxPool
 }
