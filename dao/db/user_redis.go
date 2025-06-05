@@ -86,3 +86,29 @@ func NewDynamicNotice(client redis.UniversalClient, key string, userID uint64, d
 	}
 	return nil
 }
+
+func SendUserUpdateStream(client redis.UniversalClient, stream string, updates map[uint64]interface{}) error {
+	begin := time.Now()
+	pipe := client.Pipeline()
+	for userID, update := range updates {
+		data, err := json.Marshal(update)
+		if err != nil {
+			logger.Error("SendUserUpdateStream marshal user update data error", zap.String("stream", stream), zap.Uint64("user_id", userID), zap.Any("user_update_data", update), zap.Error(err))
+			return err
+		}
+		pipe.XAdd(dao.Ctx, &redis.XAddArgs{
+			Stream: stream,
+			Values: map[string]interface{}{
+				"data":    data,
+				"user_id": userID,
+			},
+			MaxLen: 10000,
+		})
+	}
+	_, err := pipe.Exec(dao.Ctx)
+	if err != nil {
+		return err
+	}
+	logger.Info("SendUserUpdateStream success to send stream", zap.String("stream", stream), zap.Duration("elapsed", time.Since(begin)))
+	return nil
+}
