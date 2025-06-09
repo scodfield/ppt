@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"errors"
 	"github.com/IBM/sarama"
 	"go.uber.org/zap"
 	"ppt/logger"
@@ -59,4 +60,26 @@ func (sara *SaramaAsyncClient) Close() {
 		sara.producer.Close()
 		sara.producer = nil
 	}
+}
+
+func ConsumeAsyncProducer(asyncClient *SaramaAsyncClient) {
+	if asyncClient == nil {
+		logger.Info("SaramaAsyncClient nil producer")
+		return
+	}
+	producer := asyncClient.producer
+	go func() {
+		for {
+			select {
+			case <-producer.Successes():
+			case err := <-producer.Errors():
+				if err != nil {
+					if errors.Is(err.Err, sarama.ErrUnknownTopicOrPartition) {
+						logger.Fatal("ConsumeAsyncProducer topic does not exists", zap.Error(err))
+					}
+					logger.Error("SaramaAsyncClient GetAsyncProducer error", zap.Error(err))
+				}
+			}
+		}
+	}()
 }
