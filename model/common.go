@@ -46,3 +46,9 @@ func (b *BaseModel) BeforeCreate(db *gorm.DB) error {
 	b.ID = uuidV7.String()
 	return nil
 }
+
+type UserFuncSwitchT struct {
+	UserID   uint64
+	SwitchID int32 // 开关ID
+	IsActive bool  // 是否开放
+}

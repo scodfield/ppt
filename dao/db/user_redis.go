@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"ppt/dao"
 	"ppt/logger"
+	"ppt/model"
 	"strconv"
 	"time"
 )
@@ -110,5 +111,24 @@ func SendUserUpdateStream(client redis.UniversalClient, stream string, updates m
 		return err
 	}
 	logger.Info("SendUserUpdateStream success to send stream", zap.String("stream", stream), zap.Duration("elapsed", time.Since(begin)))
+	return nil
+}
+
+func SetUserFuncSwitch(client redis.UniversalClient, userID uint64, funcSwitches []model.UserFuncSwitchT) error {
+	key := fmt.Sprintf(dao.UserFuncSwitchKey, userID)
+	pipe := client.Pipeline()
+	for _, funcSwitch := range funcSwitches {
+		data, err := json.Marshal(funcSwitch)
+		if err != nil {
+			logger.Error("SetUserFuncSwitch json marshal error", zap.Any("func_switch", funcSwitch), zap.Error(err))
+			return err
+		}
+		pipe.HSet(dao.Ctx, key, data)
+	}
+	_, err := pipe.Exec(dao.Ctx)
+	if err != nil {
+		logger.Error("SetUserFuncSwitch pipe exec error", zap.Error(err))
+		return err
+	}
 	return nil
 }
