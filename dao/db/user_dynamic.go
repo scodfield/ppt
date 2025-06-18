@@ -11,7 +11,7 @@ import (
 
 func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) ([]uint64, error) {
 	var result []uint64
-	usersT := client.Database(dao.MongoDB).Collection(dao.MongoUsers)
+	usersT := client.Database(dao.MongoDB).Collection(dao.MongoCollUsers)
 	opts := options.Find()
 	opts.SetProjection(bson.M{"user_id": 1})
 	filter := bson.M{"brand_id": brandID}
@@ -40,4 +40,37 @@ func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) (
 		cursor.Close(dao.Ctx)
 	}
 	return result, nil
+}
+
+const FriendVisitBulkWriteSize = 1000
+
+func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64) error {
+	friendVisit := client.Database(dao.MongoDB).Collection(dao.MongoCollFriendVisit)
+	batchSize := 0
+	var operations []mongo.WriteModel
+	for i := 0; i < len(visits); i++ {
+		if batchSize > FriendVisitBulkWriteSize {
+			res, err := friendVisit.BulkWrite(dao.Ctx, operations)
+			if err != nil {
+				logger.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
+				return err
+			}
+			logger.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
+			batchSize = 0
+			operations = operations[:0]
+		}
+		batchSize++
+		updateModel := mongo.NewUpdateOneModel().SetFilter(bson.M{"_id": userID}).SetUpsert(true).SetUpdate(bson.M{"$inc": bson.M{"today_visit": 1, "total_visit": 1}, "$push": bson.M{"today_visit_friends": visits[i]}})
+		operations = append(operations, updateModel)
+	}
+	if len(operations) > 0 {
+		res, err := friendVisit.BulkWrite(dao.Ctx, operations)
+		if err != nil {
+			logger.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
+			return err
+		}
+		logger.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
+		operations = nil
+	}
+	return nil
 }

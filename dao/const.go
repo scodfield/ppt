@@ -7,7 +7,8 @@ const (
 	UserCacheKey               = "ppt:user:cache:%d"       // 用户UserCache
 	UserFuncSwitchKey          = "ppt:user:func_switch:%d" // 用户功能开关缓存
 	MongoDB                    = "ppt"
-	MongoUsers                 = "users"
+	MongoCollUsers             = "users"
+	MongoCollFriendVisit       = "friend_visit"
 	UserMailsExpiredDeleteDays = 7 // 过期删除天数
 )
 
