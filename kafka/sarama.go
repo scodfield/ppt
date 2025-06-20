@@ -16,20 +16,41 @@ type SaramaAsyncClient struct {
 func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyncClient, error) {
 	config := sarama.NewConfig()
 	// 检查topic是否存在
-	admin, err := sarama.NewClusterAdmin([]string{bootstrapServer}, config)
+	//admin, err := sarama.NewClusterAdmin([]string{bootstrapServer}, config)
+	//if err != nil {
+	//	logger.Error("InitSaramaAsyncClient NewClusterAdmin error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.Error(err))
+	//	return nil, err
+	//}
+	//defer admin.Close()
+	//topics, err := admin.ListTopics()
+	//if err != nil {
+	//	logger.Error("InitSaramaAsyncClient ListTopics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("topic", topic), zap.Error(err))
+	//	return nil, err
+	//}
+	//if _, exists := topics[topic]; !exists {
+	//	logger.Error("InitSaramaAsyncClient kafka server has no topic", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("topic", topic))
+	//	return nil, errors.New("InitSaramaAsyncClient kafka server has no topic")
+	//}
+	client, err := sarama.NewClient([]string{bootstrapServer}, config)
 	if err != nil {
-		logger.Error("InitSaramaAsyncClient NewClusterAdmin error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.Error(err))
+		logger.Error("InitSaramaAsyncClient NewClient error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.Error(err))
 		return nil, err
 	}
-	defer admin.Close()
-	topics, err := admin.ListTopics()
+	defer client.Close()
+	topics, err := client.Topics()
 	if err != nil {
-		logger.Error("InitSaramaAsyncClient ListTopics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("topic", topic), zap.Error(err))
+		logger.Error("InitSaramaAsyncClient Topics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic), zap.Error(err))
 		return nil, err
 	}
-	if _, exists := topics[topic]; !exists {
-		logger.Error("InitSaramaAsyncClient kafka server has no topic", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("topic", topic))
-		return nil, errors.New("InitSaramaAsyncClient kafka server has no topic")
+	var topicExists bool
+	for _, remoteTopic := range topics {
+		if remoteTopic == topic {
+			topicExists = true
+		}
+	}
+	if !topicExists {
+		logger.Error("InitSaramaAsyncClient Topic Not Found", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic))
+		return nil, errors.New("topic does not exist")
 	}
 
 	config.ClientID = clientID
