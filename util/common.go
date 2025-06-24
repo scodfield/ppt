@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"ppt/config"
 	"reflect"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -49,6 +50,50 @@ func StructToMap(obj interface{}) map[string]string {
 			fieldValue = ""
 		}
 		result[fieldName] = fieldValue
+	}
+	return result
+}
+
+// StructToJsonMap 结构体转json字段名Map
+func StructToJsonMap(obj interface{}) map[string]string {
+	result := make(map[string]string)
+	val := reflect.ValueOf(obj)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
+		return nil
+	}
+
+	re := regexp.MustCompile(`[,;]+`)
+	for i := 0; i < val.NumField(); i++ {
+		field := val.Field(i)
+		jsonTag := val.Type().Field(i).Tag.Get("json")
+		if jsonTag == "" {
+			continue
+		}
+		jsonTags := re.Split(jsonTag, -1)
+		if len(jsonTags) == 0 {
+			continue
+		}
+		jsonName := jsonTags[0]
+
+		var fieldValue string
+		switch field.Kind() {
+		case reflect.String:
+			fieldValue = field.String()
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			fieldValue = strconv.FormatInt(field.Int(), 10)
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			fieldValue = strconv.FormatUint(field.Uint(), 10)
+		case reflect.Float32, reflect.Float64:
+			fieldValue = strconv.FormatFloat(field.Float(), 'g', -1, 64)
+		case reflect.Bool:
+			fieldValue = strconv.FormatBool(field.Bool())
+		default:
+			fieldValue = ""
+		}
+		result[jsonName] = fieldValue
 	}
 	return result
 }
