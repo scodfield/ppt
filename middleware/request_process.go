@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"bytes"
+	"compress/gzip"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"io"
@@ -71,6 +73,31 @@ func RequestCheckSign() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10003, "error": "sign not match"})
 			c.Abort()
 			return
+		}
+		c.Next()
+	}
+}
+
+func RequestDecompressGzip() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Header.Get("Content-Encoding") == "gzip" {
+			gzipReader, err := gzip.NewReader(c.Request.Body)
+			if err != nil {
+				logger.Error("RequestDecompressGzip NewReader error", zap.Error(err))
+				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10001, "error": err.Error()})
+				c.Abort()
+				return
+			}
+			defer gzipReader.Close()
+
+			body, err := io.ReadAll(gzipReader)
+			if err != nil {
+				logger.Error("RequestDecompressGzip ReadAll error", zap.Error(err))
+				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10002, "error": err.Error()})
+				c.Abort()
+				return
+			}
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 		}
 		c.Next()
 	}
