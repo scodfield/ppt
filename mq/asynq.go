@@ -2,10 +2,12 @@ package mq
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 	"ppt/dao"
+	"ppt/dao/db"
 	"ppt/logger"
 	"time"
 )
@@ -86,6 +88,42 @@ func EnqueueTaskLatency(task *asynq.Task, sendTime time.Time) error {
 		logger.Error("EnqueueTaskLatency enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
 		return err
 	}
+	cacheKey := fmt.Sprintf(db.TaskInfoCacheKey, info.ID)
+	infoBytes, err := json.Marshal(info)
+	if err != nil {
+		logger.Error("EnqueueTaskLatency marshal asynq task info fail", zap.Any("err", err))
+	}
+	exists, err := db.SetAsynqTaskCache(dao.RedisDB, cacheKey, infoBytes)
+	if err != nil {
+		logger.Error("EnqueueTaskLatency set cache fail", zap.Any("err", err))
+	}
+	if exists {
+		logger.Info("EnqueueTaskLatency asynq task already in redis cache", zap.Any("info", info))
+	}
 	logger.Info("EnqueueTaskLatency enqueue success", zap.Any("info", info))
+	return nil
+}
+
+// DelTaskLatency 删除延时任务
+func DelTaskLatency(taskID string) error {
+	cacheKey := fmt.Sprintf(db.TaskInfoCacheKey, taskID)
+	taskBytes, err := db.GetAsynqTaskCache(dao.RedisDB, cacheKey)
+	if err != nil {
+		logger.Error("DelTaskLatency get task info fail", zap.String("task_id", taskID), zap.Any("err", err))
+		return err
+	}
+	task := &asynq.Task{}
+	err = json.Unmarshal(taskBytes, task)
+	if err != nil {
+		logger.Error("DelTaskLatency unmarshal task fail", zap.String("task_id", taskID), zap.ByteString("task_bytes", taskBytes), zap.Any("err", err))
+		return err
+	}
+	err = asynqInspector.DeleteTask(TaskQueueTypeLatency, taskID)
+	if err != nil {
+		logger.Error("DelTaskLatency delete task fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		return err
+	}
+	_ = db.DelAsynqTaskCache(dao.RedisDB, cacheKey)
+	logger.Info("DelTaskLatency delete task info success", zap.Any("asynq_task", task))
 	return nil
 }
