@@ -7,10 +7,13 @@ import (
 	"go.uber.org/zap"
 	"ppt/dao"
 	"ppt/logger"
+	"time"
 )
 
 const (
-	TaskDBNum = 15
+	TaskDBNum            = 15
+	TaskQueueTypeInstant = "task_queue_instant" // 实时队列
+	TaskQueueTypeLatency = "task_queue_latency" // 延时队列
 )
 
 var (
@@ -63,4 +66,26 @@ func CloseAsynq() {
 		}
 		asynqInspector = nil
 	}
+}
+
+// EnqueueTaskInstant 实时发送
+func EnqueueTaskInstant(task *asynq.Task) error {
+	info, err := asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Queue(TaskQueueTypeInstant))
+	if err != nil {
+		logger.Error("EnqueueTaskInstant enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		return err
+	}
+	logger.Info("EnqueueTaskInstant enqueue success", zap.Any("info", info))
+	return nil
+}
+
+// EnqueueTaskLatency 延时发送
+func EnqueueTaskLatency(task *asynq.Task, sendTime time.Time) error {
+	info, err := asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Queue(TaskQueueTypeLatency), asynq.ProcessAt(sendTime))
+	if err != nil {
+		logger.Error("EnqueueTaskLatency enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		return err
+	}
+	logger.Info("EnqueueTaskLatency enqueue success", zap.Any("info", info))
+	return nil
 }
