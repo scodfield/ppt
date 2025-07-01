@@ -41,6 +41,7 @@ require (
 	github.com/hibiken/asynq v0.25.1
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/panjf2000/ants/v2 v2.11.2
+	github.com/pquerna/otp v1.5.0
 	github.com/prometheus/client_golang v1.21.1
 	go.uber.org/zap v1.27.0
 	gorm.io/datatypes v1.2.5
@@ -54,6 +55,7 @@ require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.23.2 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
