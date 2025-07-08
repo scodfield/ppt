@@ -132,3 +132,31 @@ func SetUserFuncSwitch(client redis.UniversalClient, userID uint64, funcSwitches
 	}
 	return nil
 }
+
+func PushUserLoginTime(client redis.UniversalClient, userID uint64, loginTime int64) error {
+	key := fmt.Sprintf(dao.UserLoginTimeQueueKey, userID)
+	pipe := client.Pipeline()
+	pipe.LPush(dao.Ctx, key, loginTime)
+	pipe.LTrim(dao.Ctx, key, 0, int64(dao.UserLoginTimeQueueMax))
+	_, err := pipe.Exec(dao.Ctx)
+	if err != nil {
+		logger.Error("PushUserLoginTime pipe exec error", zap.Uint64("user_id", userID), zap.Int64("login_time", loginTime), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func GetUserLastLoginTime(client redis.UniversalClient, userID uint64) (int64, error) {
+	key := fmt.Sprintf(dao.UserLoginTimeQueueKey, userID)
+	lastLoginStr, err := client.LIndex(dao.Ctx, key, -1).Result()
+	if err != nil {
+		logger.Error("GetUserLastLoginTime redis LIndex error", zap.Uint64("user_id", userID), zap.Error(err))
+		return 0, err
+	}
+	lastLogin, err := strconv.ParseInt(lastLoginStr, 10, 64)
+	if err != nil {
+		logger.Error("GetUserLastLoginTime ParseInt error", zap.Uint64("user_id", userID), zap.String("last_login_str", lastLoginStr), zap.Error(err))
+		return 0, err
+	}
+	return lastLogin, nil
+}
