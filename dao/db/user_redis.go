@@ -172,16 +172,17 @@ func SetUserSettle(client redis.UniversalClient, userID uint64, settleSec int64)
 	return nil
 }
 
-func PopUserSettle(client redis.UniversalClient) (uint64, error) {
+func PopUserSettle(client redis.UniversalClient) (uint64, int64, error) {
 	result, err := client.ZPopMin(dao.Ctx, dao.UserSettleSetKey, 1).Result()
 	if err != nil {
 		logger.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
-		return 0, err
+		return 0, 0, err
 	}
 	userID, ok := result[0].Member.(uint64)
 	if !ok {
 		logger.Error("PopUserSettle user_id assertion error", zap.Any("user_redis_z", result[0]))
-		return 0, errors.New("user_id assertion error")
+		return 0, 0, errors.New("user_id assertion error")
 	}
-	return userID, nil
+	settleSec := result[0].Score
+	return userID, int64(settleSec), nil
 }
