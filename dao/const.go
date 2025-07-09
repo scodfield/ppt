@@ -7,6 +7,7 @@ const (
 	UserCacheKey               = "ppt:user:cache:%d"            // 用户UserCache
 	UserFuncSwitchKey          = "ppt:user:func_switch:%d"      // 用户功能开关缓存
 	UserLoginTimeQueueKey      = "ppt:user:login_time_queue:%d" // 用户最近登录时间
+	UserSettleSetKey           = "ppt:user:settle_set"
 	MongoDB                    = "ppt"
 	MongoCollUsers             = "users"
 	MongoCollFriendVisit       = "friend_visit"

@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -159,4 +160,28 @@ func GetUserLastLoginTime(client redis.UniversalClient, userID uint64) (int64, e
 		return 0, err
 	}
 	return lastLogin, nil
+}
+
+func SetUserSettle(client redis.UniversalClient, userID uint64, settleSec int64) error {
+	userSettle := redis.Z{Score: float64(settleSec), Member: userID}
+	_, err := client.ZAddNX(dao.Ctx, dao.UserSettleSetKey, userSettle).Result()
+	if err != nil {
+		logger.Error("SetUserSettle redis ZAdd error", zap.Uint64("user_id", userID), zap.Int64("settle_sec", settleSec), zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func PopUserSettle(client redis.UniversalClient) (uint64, error) {
+	result, err := client.ZPopMin(dao.Ctx, dao.UserSettleSetKey, 1).Result()
+	if err != nil {
+		logger.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
+		return 0, err
+	}
+	userID, ok := result[0].Member.(uint64)
+	if !ok {
+		logger.Error("PopUserSettle user_id assertion error", zap.Any("user_redis_z", result[0]))
+		return 0, errors.New("user_id assertion error")
+	}
+	return userID, nil
 }
