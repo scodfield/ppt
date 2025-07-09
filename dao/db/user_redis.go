@@ -175,6 +175,10 @@ func SetUserSettle(client redis.UniversalClient, userID uint64, settleSec int64)
 func PopUserSettle(client redis.UniversalClient) (uint64, int64, error) {
 	result, err := client.ZPopMin(dao.Ctx, dao.UserSettleSetKey, 1).Result()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			logger.Info("PopUserSettle no user settle in set.")
+			return 0, 0, nil
+		}
 		logger.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
 		return 0, 0, err
 	}
