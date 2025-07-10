@@ -182,6 +182,10 @@ func PopUserSettle(client redis.UniversalClient) (uint64, int64, error) {
 		logger.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
 		return 0, 0, err
 	}
+	if len(result) <= 0 {
+		logger.Info("PopUserSettle no user settle in set.")
+		return 0, 0, nil
+	}
 	userID, ok := result[0].Member.(uint64)
 	if !ok {
 		logger.Error("PopUserSettle user_id assertion error", zap.Any("user_redis_z", result[0]))
