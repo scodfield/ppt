@@ -162,11 +162,15 @@ func GetUserLastLoginTime(client redis.UniversalClient, userID uint64) (int64, e
 	return lastLogin, nil
 }
 
-func SetUserSettle(client redis.UniversalClient, userID uint64, settleSec int64) error {
-	userSettle := redis.Z{Score: float64(settleSec), Member: userID}
-	_, err := client.ZAddNX(dao.Ctx, dao.UserSettleSetKey, userSettle).Result()
+func SetUserSettle(client redis.UniversalClient, settles map[string]int64) error {
+	pipe := client.Pipeline()
+	for userID, settleMilli := range settles {
+		userSettle := redis.Z{Score: float64(settleMilli), Member: userID}
+		pipe.ZAddNX(dao.Ctx, dao.UserSettleSetKey, userSettle)
+	}
+	_, err := pipe.Exec(dao.Ctx)
 	if err != nil {
-		logger.Error("SetUserSettle redis ZAdd error", zap.Uint64("user_id", userID), zap.Int64("settle_sec", settleSec), zap.Error(err))
+		logger.Error("SetUserSettle redis ZAdd error", zap.Any("user_settles", settles), zap.Error(err))
 		return err
 	}
 	return nil
