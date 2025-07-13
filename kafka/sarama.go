@@ -1,10 +1,13 @@
 package kafka
 
 import (
+	"context"
 	"errors"
 	"github.com/IBM/sarama"
 	"go.uber.org/zap"
 	"ppt/logger"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -124,4 +127,107 @@ func ConsumeAsyncProducer(asyncClient *SaramaAsyncClient) {
 			}
 		}
 	}()
+}
+
+type SaramaConsumerClient struct {
+	consumerGroup sarama.ConsumerGroup
+	handler       MessageHandler
+	topic         []string
+	ready         chan struct{} // 无缓冲空结构体通道
+	ctx           context.Context
+	cancel        context.CancelFunc
+	wg            sync.WaitGroup
+	readyOnce     sync.Once
+}
+
+func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic []string, handler MessageHandler) (*SaramaConsumerClient, error) {
+	if bootstrapServer == "" || len(topic) <= 0 || handler == nil {
+		logger.Error("InitSaramaConsumerClient invalid parameters", zap.String("bootstrap_server", bootstrapServer), zap.Strings("topic", topic), zap.Any("handler_func", handler))
+		return nil, errors.New("invalid parameters")
+	}
+	config := sarama.NewConfig()
+	if config == nil {
+		return nil, errors.New("sarama NewConfig return nil")
+	}
+	config.ClientID = clientID
+	rangeStrategy := sarama.NewBalanceStrategyRange()
+	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{rangeStrategy} // 工厂函数创建策略
+	config.Consumer.Offsets.Initial = sarama.OffsetOldest                                     // 从最早的消息开始消费
+	config.Consumer.Offsets.AutoCommit.Enable = true                                          // 启用自动提交偏移量
+	config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second                             // 自动提交间隔
+
+	config.Net.SASL.Enable = false
+	config.Net.TLS.Enable = false
+
+	config.Consumer.Return.Errors = true
+
+	brokers := strings.Split(bootstrapServer, ",")
+	consumerGroup, err := sarama.NewConsumerGroup(brokers, groupID, config)
+	if err != nil {
+		logger.Error("InitSaramaConsumerClient NewConsumerGroup error", zap.Error(err))
+		return nil, err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+
+	return &SaramaConsumerClient{
+		consumerGroup: consumerGroup,
+		topic:         topic,
+		handler:       handler,
+		ctx:           ctx,
+		cancel:        cancel,
+	}, nil
+}
+
+func (sara *SaramaConsumerClient) markReady() {
+	sara.readyOnce.Do(func() {
+		close(sara.ready)
+		logger.Info("SaramaConsumerClient ready to mark ready")
+	})
+}
+
+func (sara *SaramaConsumerClient) Start() error {
+	sara.ready = make(chan struct{})
+	sara.wg.Add(1)
+	go func() {
+		defer sara.wg.Done()
+		handler := &SaramaHandler{
+			handler:   sara.handler,
+			readyFunc: sara.markReady,
+		}
+
+		for {
+			select {
+			case <-sara.ctx.Done():
+				return
+			default:
+				err := sara.consumerGroup.Consume(sara.ctx, sara.topic, handler)
+				if err != nil {
+					logger.Error("SaramaConsumerClient ConsumerGroup Consume error", zap.Error(err))
+					time.Sleep(5 * time.Second)
+				}
+			}
+		}
+	}()
+
+	<-sara.ready
+	logger.Info("SaramaConsumerClient start success")
+	return nil
+}
+
+func (sara *SaramaConsumerClient) Close() error {
+	sara.cancel()  // 发送取消信号
+	sara.wg.Wait() // 等待consumer退出
+	if err := sara.consumerGroup.Close(); err != nil {
+		logger.Error("SaramaConsumerClient Close() error", zap.Error(err))
+	}
+	return nil
+}
+
+func (sara *SaramaConsumerClient) WaitUntilReady(timeout time.Duration) error {
+	select {
+	case <-sara.ready:
+		return nil
+	case <-time.After(timeout):
+		return errors.New("timeout waiting for consumer ready")
+	}
 }
