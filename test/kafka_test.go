@@ -53,5 +53,15 @@ func TestKafka(t *testing.T) {
 }
 
 func TestSaramaConsumer(t *testing.T) {
-
+	bootstrapServerAddr := "localhost:9092"
+	clientID := "ppt-test-client"
+	groupID := "ppt-test-group"
+	topics := []string{"ppt-test-statics"}
+	handler := &kafka.SaramaKafkaHandler{}
+	consumer, err := kafka.InitSaramaConsumerClient(bootstrapServerAddr, clientID, groupID, topics, handler)
+	if err != nil {
+		logger.Error("TestKafka InitSaramaConsumerClient error", zap.Error(err))
+		return
+	}
+	consumer.Start()
 }

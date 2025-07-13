@@ -43,3 +43,10 @@ func (h *SaramaHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim 
 	}
 	return nil
 }
+
+type SaramaKafkaHandler struct{}
+
+func (sara *SaramaKafkaHandler) Handle(message *sarama.ConsumerMessage) error {
+	logger.Info("SaramaKafkaHandler receive message", zap.String("topic", message.Topic), zap.ByteString("message_bytes", message.Value))
+	return nil
+}
