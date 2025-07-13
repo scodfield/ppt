@@ -34,7 +34,6 @@ require (
 require (
 	github.com/IBM/sarama v1.45.2
 	github.com/astaxie/beego v1.12.3
-	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0

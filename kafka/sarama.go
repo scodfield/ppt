@@ -82,6 +82,10 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	return &SaramaAsyncClient{producer, topic}, nil
 }
 
+func (sara *SaramaAsyncClient) GetProducer() sarama.AsyncProducer {
+	return sara.producer
+}
+
 // SendMessage 异步发送消息
 func (sara *SaramaAsyncClient) SendMessage(key, value []byte) {
 	msg := &sarama.ProducerMessage{
