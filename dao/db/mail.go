@@ -104,3 +104,22 @@ func (m *UserMailDao) DeleteUserMailsByExpiredTimeAndBatch(now time.Time, limit 
 	}
 	return userMails, nil
 }
+
+func (m *UserMailDao) UpdateUserMailByTx(userID uint64, updates map[string]interface{}) error {
+	tx := m.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("UpdateUserMailByTx recover panic", zap.Uint64("user_id", userID), zap.Any("mail_updates", updates), zap.Any("recover_panic", r), zap.Stack("stack"))
+			tx.Rollback()
+		}
+	}()
+
+	tx.Model(&model2.UserMail{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("user_id = ?", userID).Updates(updates)
+	if err := tx.Commit().Error; err != nil {
+		logger.Error("UpdateUserMailByTx commit update error", zap.Error(err))
+		// 一般会自动回滚,安全起见
+		tx.Rollback()
+		return err
+	}
+	return nil
+}
