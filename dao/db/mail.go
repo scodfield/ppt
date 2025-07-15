@@ -105,6 +105,7 @@ func (m *UserMailDao) DeleteUserMailsByExpiredTimeAndBatch(now time.Time, limit 
 	return userMails, nil
 }
 
+// UpdateUserMailByTx UserMail事务更新
 func (m *UserMailDao) UpdateUserMailByTx(userID uint64, updates map[string]interface{}) error {
 	tx := m.db.Begin()
 	defer func() {
@@ -122,4 +123,15 @@ func (m *UserMailDao) UpdateUserMailByTx(userID uint64, updates map[string]inter
 		return err
 	}
 	return nil
+}
+
+// UpdateUserMailByTransaction UserMail自动事务更新
+func (m *UserMailDao) UpdateUserMailByTransaction(userID uint64, updates map[string]interface{}) error {
+	return m.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&model2.UserMail{}).Where("user_id = ?", userID).Updates(updates).Error; err != nil {
+			logger.Error("UpdateUserMailByTransaction updates error", zap.Error(err))
+			return err
+		}
+		return nil
+	})
 }
