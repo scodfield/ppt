@@ -7,6 +7,7 @@ import (
 	"ppt/kafka"
 	"ppt/logger"
 	"testing"
+	"time"
 )
 
 func TestMain(m *testing.M) {
@@ -36,12 +37,12 @@ func TestKafka(t *testing.T) {
 	}
 	kafka.ConsumeAsyncProducer(asyncClient)
 
-	userID := "101000001"
+	userID := "101000851"
 	kafkaMsg := map[string]interface{}{
 		"user_id": userID,
 		"gender":  true,
-		"age":     23,
-		"level":   99,
+		"age":     24,
+		"level":   95,
 		"exp":     234523,
 	}
 	kafkaMsgBytes, err := json.Marshal(kafkaMsg)
@@ -50,6 +51,7 @@ func TestKafka(t *testing.T) {
 		return
 	}
 	asyncClient.SendMessage([]byte(userID), kafkaMsgBytes)
+	time.Sleep(5 * time.Second)
 }
 
 func TestSaramaConsumer(t *testing.T) {

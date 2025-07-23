@@ -116,7 +116,8 @@ func ConsumeAsyncProducer(asyncClient *SaramaAsyncClient) {
 	go func() {
 		for {
 			select {
-			case <-producer.Successes():
+			case msg := <-producer.Successes():
+				logger.Info("ConsumeAsyncProducer success to send msg", zap.Any("msg", msg))
 			case err := <-producer.Errors():
 				if err != nil {
 					if errors.Is(err.Err, sarama.ErrUnknownTopicOrPartition) {
