@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -133,5 +134,5 @@ func (m *UserMailDao) UpdateUserMailByTransaction(userID uint64, updates map[str
 			return err
 		}
 		return nil
-	})
+	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 }
