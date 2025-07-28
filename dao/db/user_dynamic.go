@@ -11,7 +11,7 @@ import (
 
 func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) ([]uint64, error) {
 	var result []uint64
-	usersT := client.Database(dao.MongoDB).Collection(dao.MongoCollUsers)
+	usersT := client.Database(dao.MongoDBPTT).Collection(dao.MongoCollUsers)
 	opts := options.Find()
 	opts.SetProjection(bson.M{"user_id": 1})
 	filter := bson.M{"brand_id": brandID}
@@ -45,7 +45,7 @@ func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) (
 const FriendVisitBulkWriteSize = 1000
 
 func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64) error {
-	friendVisit := client.Database(dao.MongoDB).Collection(dao.MongoCollFriendVisit)
+	friendVisit := client.Database(dao.MongoDBPTT).Collection(dao.MongoCollFriendVisit)
 	batchSize := 0
 	var operations []mongo.WriteModel
 	for i := 0; i < len(visits); i++ {
