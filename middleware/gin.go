@@ -47,3 +47,30 @@ func GinRecover(log *logger.LoggerV2, printStack bool) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func HttpCheckIP(whiteIP []string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clientIP, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			http.Error(w, "Request forbidden", http.StatusForbidden)
+			return
+		}
+		ipAddr := net.ParseIP(clientIP)
+		if (ipAddr != nil && ipAddr.IsPrivate()) || isWhiteIP(clientIP, whiteIP) {
+			next.ServeHTTP(w, r)
+			return
+		}
+	})
+}
+
+func isWhiteIP(ip string, whiteIP []string) bool {
+	if len(whiteIP) == 0 {
+		return true
+	}
+	for _, v := range whiteIP {
+		if v == ip {
+			return true
+		}
+	}
+	return false
+}

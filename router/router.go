@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"net/http"
 	"ppt/logger"
@@ -47,5 +48,6 @@ func initRouter() *gin.Engine {
 		c.JSON(http.StatusOK, "pong")
 	})
 
+	router.GET("/metrics", gin.WrapF(middleware.HttpCheckIP([]string{}, promhttp.Handler()).ServeHTTP))
 	return router
 }
