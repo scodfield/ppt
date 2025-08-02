@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"ppt/logger"
+	"ppt/middleware"
 	"time"
 )
 
@@ -39,11 +40,11 @@ func initRouter() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{}))
+	router.Use(middleware.GinRecover(&logger.Logger, true))
+	router.Use(middleware.Prom(), middleware.Cors())
 
 	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+		c.JSON(http.StatusOK, "pong")
 	})
 
 	return router
