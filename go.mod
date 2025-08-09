@@ -39,6 +39,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hibiken/asynq v0.25.1
 	github.com/jackc/pgx/v5 v5.5.5
+	github.com/judwhite/go-svc v1.2.1
 	github.com/panjf2000/ants/v2 v2.11.2
 	github.com/pquerna/otp v1.5.0
 	github.com/prometheus/client_golang v1.21.1
