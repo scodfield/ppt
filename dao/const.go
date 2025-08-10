@@ -1,6 +1,9 @@
 package dao
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 const (
 	UserLockKey                = "ppt:user:lock:%d"             // 用户Redis锁
@@ -8,6 +11,7 @@ const (
 	UserFuncSwitchKey          = "ppt:user:func_switch:%d"      // 用户功能开关缓存
 	UserLoginTimeQueueKey      = "ppt:user:login_time_queue:%d" // 用户最近登录时间
 	UserSettleSetKey           = "ppt:user:settle_set"
+	UserNameRegisterKey        = "ppt:user:name_register:%s" // 用户名注册
 	MongoDBPTT                 = "ppt"
 	MongoCollUsers             = "users"
 	MongoCollUserCredit        = "user_credit"
@@ -17,6 +21,8 @@ const (
 )
 
 var (
-	Ctx                   = context.Background()
-	UserLoginTimeQueueMax = 5 // 最近5次登录
+	Ctx                        = context.Background()
+	UserLoginTimeQueueMax      = 5 // 最近5次登录
+	UserCacheDefaultExpiration = time.Minute * 30
+	UserCacheDefaultCleanUp    = time.Minute * 30
 )

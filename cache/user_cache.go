@@ -19,7 +19,7 @@ type UserCacheT struct {
 	redis redis.UniversalClient
 }
 
-func NewUserCache(pgSql *gorm.DB, redis redis.UniversalClient, defaultExpiration, cleanupExpiration time.Duration) {
+func InitUserCache(pgSql *gorm.DB, redis redis.UniversalClient, defaultExpiration, cleanupExpiration time.Duration) {
 	UserCache = NewCache[uint64, any](defaultExpiration, cleanupExpiration, &UserCacheT{
 		pgSql: pgSql,
 		redis: redis,

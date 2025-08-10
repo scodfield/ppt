@@ -29,7 +29,7 @@ func (c *Cache[K, V]) Get(key K) (any, error) {
 	return value, nil
 }
 
-func (c *Cache[K, V]) Set(key K, value any, ttl time.Duration) {
+func (c *Cache[K, V]) Set(key K, value V, ttl time.Duration) {
 	c.cache.Set(key, value, ttl)
 }
 

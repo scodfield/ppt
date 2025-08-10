@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	pgDB    *gorm.DB
+	PgDB    *gorm.DB
 	pgxPool *pgxpool.Pool
 	pgOnce  sync.Once
 )
@@ -35,9 +35,9 @@ func InitPg(cfg *PgConfig) error {
 		if err = sqlDB.Ping(); err != nil {
 			panic("Failed to connect to pg: " + err.Error())
 		}
-		pgDB = db.Debug()
+		PgDB = db.Debug()
 		if config.Env != "test" {
-			pgDB.Logger = logger.Default.LogMode(logger.Silent)
+			PgDB.Logger = logger.Default.LogMode(logger.Silent)
 		}
 
 		pgxPool, err = initPgxPool(dsn)
@@ -71,25 +71,17 @@ func initPgxPool(dsn string) (*pgxpool.Pool, error) {
 }
 
 func ClosePg() {
-	if pgDB != nil {
-		sqlDB, err := pgDB.DB()
+	if PgDB != nil {
+		sqlDB, err := PgDB.DB()
 		if err != nil {
 			fmt.Println("Failed to close pgDB: " + err.Error())
 			return
 		}
 		_ = sqlDB.Close()
-		pgDB = nil
+		PgDB = nil
 	}
 	if pgxPool != nil {
 		pgxPool.Close()
 		pgxPool = nil
 	}
-}
-
-func GetPgDB() *gorm.DB {
-	return pgDB
-}
-
-func GetPgxPool() *pgxpool.Pool {
-	return pgxPool
 }

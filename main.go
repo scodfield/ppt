@@ -6,6 +6,7 @@ import (
 	"github.com/judwhite/go-svc"
 	"go.uber.org/zap"
 	"net/http"
+	pptCache "ppt/cache"
 	"ppt/dao"
 	"ppt/logger"
 	"ppt/monitor"
@@ -61,6 +62,7 @@ func (s *program) Init(env svc.Environment) error {
 		return err
 	}
 
+	pptCache.InitUserCache(dao.PgDB, dao.RedisDB, dao.UserCacheDefaultExpiration, dao.UserCacheDefaultCleanUp)
 	s.httpServer = router.NewHttpServer(s.port)
 
 	return nil

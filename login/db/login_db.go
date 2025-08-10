@@ -2,13 +2,18 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	_ "github.com/astaxie/beego/cache"
 	_ "github.com/astaxie/beego/cache/redis"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
 	redic "ppt/cache"
+	"ppt/dao"
+	"ppt/logger"
 	"ppt/login/utils"
+	"ppt/model"
 	"strconv"
 	"sync"
 	"time"
@@ -42,18 +47,30 @@ func init() {
 	fmt.Println("current count: ", count)
 }
 
-// user register
-func SetAccountInfo(name string, user User) error {
-	user.AccId = get_account_id()
+// SetAccountInfo 设置用户账号信息
+func SetAccountInfo(name string, user model.User) error {
+	//user.AccId = get_account_id()
 	// set cache info & mark registered
-	SetLoginCache(user)
-	redisCache.Command("HSET", regHash, name, 1)
-	_, insertErr := o.Insert(&user)
-	if insertErr != nil {
-		fmt.Println("mys insert err, ", insertErr)
+	//SetLoginCache(user)
+	//redisCache.Command("HSET", regHash, name, 1)
+	//_, insertErr := o.Insert(&user)
+	//if insertErr != nil {
+	//	fmt.Println("mys insert err, ", insertErr)
+	//}
+
+	var err error
+	now := time.Now().UnixMilli()
+	exists := false
+	if exists, err = dao.RedisDB.HSetNX(dao.Ctx, dao.UserNameRegisterKey, name, now).Result(); err != nil {
+		logger.Error("SetAccountInfo HSetNX user name error", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
+		return err
+	}
+	if !exists {
+		logger.Warn("SetAccountInfo HSetNX user name already exists", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
+		return errors.New("user name already exists")
 	}
 
-	return insertErr
+	return nil
 }
 
 func GetAccountInfo(name string) interface{} {
