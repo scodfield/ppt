@@ -3,24 +3,9 @@ package monitor
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
-	"runtime"
-	"time"
 )
 
 var (
-	counter = promauto.NewCounter(prometheus.CounterOpts{
-		Namespace: "actor2",
-		Name:      "thd_op_count_test",
-		Help:      "The total number of processed events",
-	})
-	gauge = promauto.NewGauge(prometheus.GaugeOpts{
-		Namespace: "actor2",
-		Name:      "thd_gauge_test",
-		Help:      "The total number of gauge",
-	})
 	RequestDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "req_duration_seconds",
@@ -46,35 +31,19 @@ var (
 			Help: "count of requests method",
 		},
 		[]string{"path", "method"})
+	UserLoginCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "user_login_count",
+			Help: "count of user login through different modes",
+		},
+		[]string{"login_mode"})
 )
 
-// StartPrometheus 启动监控
-func StartPrometheus() {
-	reg := prometheus.NewRegistry()
-	initPromRegistry(reg)
-	promHandler := promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
-	opProcessedMetrics()
-	server := http.NewServeMux()
-	server.Handle("/metrics", promHandler)
-	http.ListenAndServe(":8081", server)
-}
-
-func initPromRegistry(reg *prometheus.Registry) {
-	reg.MustRegister(counter)
-	reg.MustRegister(gauge)
-	reg.MustRegister(RequestDuration)
-	reg.MustRegister(RequestCount)
-	reg.MustRegister(RequestStatusCount)
-	reg.MustRegister(RequestMethodCount)
-	reg.MustRegister(collectors.NewGoCollector())
-}
-
-func opProcessedMetrics() {
-	go func() {
-		for {
-			counter.Inc()
-			gauge.Add(float64(runtime.NumGoroutine()))
-			time.Sleep(10 * time.Second)
-		}
-	}()
+func InitProm() {
+	prometheus.MustRegister(RequestDuration)
+	prometheus.MustRegister(RequestCount)
+	prometheus.MustRegister(RequestStatusCount)
+	prometheus.MustRegister(RequestMethodCount)
+	prometheus.MustRegister(UserLoginCount)
+	prometheus.MustRegister(collectors.NewGoCollector())
 }
