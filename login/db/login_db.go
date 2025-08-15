@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 	"ppt/cache"
 	"ppt/dao"
-	"ppt/logger"
 	"ppt/model"
 	"time"
 )
@@ -29,11 +28,11 @@ func SetAccountInfo(name string, user model.User) error {
 	now := time.Now().UnixMilli()
 	exists := false
 	if exists, err = dao.RedisDB.HSetNX(dao.Ctx, dao.UserNameRegisterKey, name, now).Result(); err != nil {
-		logger.Error("SetAccountInfo HSetNX user name error", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
+		log.Error("SetAccountInfo HSetNX user name error", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
 		return err
 	}
 	if !exists {
-		logger.Warn("SetAccountInfo HSetNX user name already exists", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
+		log.Warn("SetAccountInfo HSetNX user name already exists", zap.Uint64("user_id", user.UserID), zap.String("user_name", name))
 		return errors.New("user name already exists")
 	}
 
@@ -47,12 +46,12 @@ func WhetherUserNameRegistered(name string) bool {
 		if errors.Is(result.Err(), redis.ErrNil) {
 			return false
 		}
-		logger.Error("WhetherUserNameRegistered redis HGet error", zap.String("user_name", name), zap.Error(result.Err()))
+		log.Error("WhetherUserNameRegistered redis HGet error", zap.String("user_name", name), zap.Error(result.Err()))
 		return true
 	}
 	regMilli, err := result.Int64()
 	if err != nil {
-		logger.Error("WhetherUserNameRegistered value assert error", zap.String("result_value", result.Val()), zap.Error(err))
+		log.Error("WhetherUserNameRegistered value assert error", zap.String("result_value", result.Val()), zap.Error(err))
 		return true
 	}
 	if regMilli > 0 {
@@ -71,7 +70,7 @@ func SetUserCache(user model.User) error {
 func GetUserCache(userID uint64) (*model.User, error) {
 	userAny, err := cache.UserCache.Get(userID)
 	if err != nil {
-		logger.Error("GetUserCache Get user cache error", zap.Uint64("user_id", userID), zap.Error(err))
+		log.Error("GetUserCache Get user cache error", zap.Uint64("user_id", userID), zap.Error(err))
 		return nil, err
 	}
 	userCache := userAny.(model.User)

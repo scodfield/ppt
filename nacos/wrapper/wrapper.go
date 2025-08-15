@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"go.uber.org/zap"
-	"ppt/logger"
+	"ppt/log"
 	"ppt/nacos"
 )
 
@@ -23,7 +23,7 @@ func GetNacosConfig(spaceID, group, dataID string) (string, error) {
 
 	data, err := nacosClient.GetConfig(dataID, group)
 	if err != nil {
-		logger.Error("GetNacosConfig nacos client GetConfig error", zap.String("space_id", spaceID), zap.String("group", group), zap.String("data_id", dataID), zap.Error(err))
+		log.Error("GetNacosConfig nacos client GetConfig error", zap.String("space_id", spaceID), zap.String("group", group), zap.String("data_id", dataID), zap.Error(err))
 		return "", err
 	}
 
@@ -33,13 +33,13 @@ func GetNacosConfig(spaceID, group, dataID string) (string, error) {
 func GetNacosDBConfig() (*DBConfig, error) {
 	data, err := GetNacosConfig(nacos.NacosRegion, nacos.NacosDefaultGroup, nacos.NacosDataIDDBConfig)
 	if err != nil {
-		logger.Error("GetNacosDBConfig GetNacosDBConfig error", zap.Error(err))
+		log.Error("GetNacosDBConfig GetNacosDBConfig error", zap.Error(err))
 		return nil, err
 	}
 	nacosDBConfig := &DBConfig{}
 	err = json.Unmarshal([]byte(data), nacosDBConfig)
 	if err != nil {
-		logger.Error("GetNacosDBConfig Unmarshal NacosDBConfig error", zap.Error(err))
+		log.Error("GetNacosDBConfig Unmarshal NacosDBConfig error", zap.Error(err))
 		return nil, err
 	}
 	return nacosDBConfig, nil

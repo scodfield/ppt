@@ -7,7 +7,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"ppt/dao"
-	"ppt/logger"
 	"ppt/model"
 	"strconv"
 	"time"
@@ -35,13 +34,13 @@ func GetActiveUsers(client redis.UniversalClient, key string) ([]uint64, error) 
 		var result []string
 		result, cursor, err = client.SScan(dao.Ctx, key, cursor, "*", int64(scanSize)).Result()
 		if err != nil {
-			logger.Error("GetActiveUsers redis scan error", zap.String("redis_key", key), zap.Error(err))
+			log.Error("GetActiveUsers redis scan error", zap.String("redis_key", key), zap.Error(err))
 			return nil, err
 		}
 		for _, v := range result {
 			id, err := strconv.ParseUint(v, 10, 64)
 			if err != nil {
-				logger.Error("GetActiveUsers error", zap.String("parse_v", v), zap.Error(err))
+				log.Error("GetActiveUsers error", zap.String("parse_v", v), zap.Error(err))
 				continue
 			}
 			users = append(users, id)
@@ -60,7 +59,7 @@ func SetActiveUsers(client redis.UniversalClient, key string, users []uint64) er
 	}
 	_, err := client.SAdd(dao.Ctx, key, usersInterface...).Result()
 	if err != nil {
-		logger.Error("SetActiveUsers redis SADD error", zap.String("redis_key", key), zap.Uint64s("users", users), zap.Error(err))
+		log.Error("SetActiveUsers redis SADD error", zap.String("redis_key", key), zap.Uint64s("users", users), zap.Error(err))
 		return err
 	}
 	return nil
@@ -69,7 +68,7 @@ func SetActiveUsers(client redis.UniversalClient, key string, users []uint64) er
 func IsActiveUser(client redis.UniversalClient, key string, userID uint64) (bool, error) {
 	exists, err := client.SIsMember(dao.Ctx, key, userID).Result()
 	if err != nil {
-		logger.Error("IsActiveUser redis SIsMember error", zap.String("redis_key", key), zap.Uint64("user_id", userID), zap.Error(err))
+		log.Error("IsActiveUser redis SIsMember error", zap.String("redis_key", key), zap.Uint64("user_id", userID), zap.Error(err))
 		return false, err
 	}
 	return exists, nil
@@ -78,12 +77,12 @@ func IsActiveUser(client redis.UniversalClient, key string, userID uint64) (bool
 func NewDynamicNotice(client redis.UniversalClient, key string, userID uint64, data map[string]interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		logger.Error("NewDynamicNotice json marshal error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Any("notice_data", data), zap.Error(err))
+		log.Error("NewDynamicNotice json marshal error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Any("notice_data", data), zap.Error(err))
 		return err
 	}
 	err = client.Publish(dao.Ctx, key, jsonData).Err()
 	if err != nil {
-		logger.Error("NewDynamicNotice publish error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Error(err))
+		log.Error("NewDynamicNotice publish error", zap.String("publish_channel", key), zap.Uint64("user_id", userID), zap.Error(err))
 		return err
 	}
 	return nil
@@ -95,7 +94,7 @@ func SendUserUpdateStream(client redis.UniversalClient, stream string, updates m
 	for userID, update := range updates {
 		data, err := json.Marshal(update)
 		if err != nil {
-			logger.Error("SendUserUpdateStream marshal user update data error", zap.String("stream", stream), zap.Uint64("user_id", userID), zap.Any("user_update_data", update), zap.Error(err))
+			log.Error("SendUserUpdateStream marshal user update data error", zap.String("stream", stream), zap.Uint64("user_id", userID), zap.Any("user_update_data", update), zap.Error(err))
 			return err
 		}
 		pipe.XAdd(dao.Ctx, &redis.XAddArgs{
@@ -111,7 +110,7 @@ func SendUserUpdateStream(client redis.UniversalClient, stream string, updates m
 	if err != nil {
 		return err
 	}
-	logger.Info("SendUserUpdateStream success to send stream", zap.String("stream", stream), zap.Duration("elapsed", time.Since(begin)))
+	log.Info("SendUserUpdateStream success to send stream", zap.String("stream", stream), zap.Duration("elapsed", time.Since(begin)))
 	return nil
 }
 
@@ -121,14 +120,14 @@ func SetUserFuncSwitch(client redis.UniversalClient, userID uint64, funcSwitches
 	for _, funcSwitch := range funcSwitches {
 		data, err := json.Marshal(funcSwitch)
 		if err != nil {
-			logger.Error("SetUserFuncSwitch json marshal error", zap.Any("func_switch", funcSwitch), zap.Error(err))
+			log.Error("SetUserFuncSwitch json marshal error", zap.Any("func_switch", funcSwitch), zap.Error(err))
 			return err
 		}
 		pipe.HSet(dao.Ctx, key, data)
 	}
 	_, err := pipe.Exec(dao.Ctx)
 	if err != nil {
-		logger.Error("SetUserFuncSwitch pipe exec error", zap.Error(err))
+		log.Error("SetUserFuncSwitch pipe exec error", zap.Error(err))
 		return err
 	}
 	return nil
@@ -141,7 +140,7 @@ func PushUserLoginTime(client redis.UniversalClient, userID uint64, loginTime in
 	pipe.LTrim(dao.Ctx, key, 0, int64(dao.UserLoginTimeQueueMax))
 	_, err := pipe.Exec(dao.Ctx)
 	if err != nil {
-		logger.Error("PushUserLoginTime pipe exec error", zap.Uint64("user_id", userID), zap.Int64("login_time", loginTime), zap.Error(err))
+		log.Error("PushUserLoginTime pipe exec error", zap.Uint64("user_id", userID), zap.Int64("login_time", loginTime), zap.Error(err))
 		return err
 	}
 	return nil
@@ -151,12 +150,12 @@ func GetUserLastLoginTime(client redis.UniversalClient, userID uint64) (int64, e
 	key := fmt.Sprintf(dao.UserLoginTimeQueueKey, userID)
 	lastLoginStr, err := client.LIndex(dao.Ctx, key, -1).Result()
 	if err != nil {
-		logger.Error("GetUserLastLoginTime redis LIndex error", zap.Uint64("user_id", userID), zap.Error(err))
+		log.Error("GetUserLastLoginTime redis LIndex error", zap.Uint64("user_id", userID), zap.Error(err))
 		return 0, err
 	}
 	lastLogin, err := strconv.ParseInt(lastLoginStr, 10, 64)
 	if err != nil {
-		logger.Error("GetUserLastLoginTime ParseInt error", zap.Uint64("user_id", userID), zap.String("last_login_str", lastLoginStr), zap.Error(err))
+		log.Error("GetUserLastLoginTime ParseInt error", zap.Uint64("user_id", userID), zap.String("last_login_str", lastLoginStr), zap.Error(err))
 		return 0, err
 	}
 	return lastLogin, nil
@@ -170,7 +169,7 @@ func SetUserSettle(client redis.UniversalClient, settles map[string]int64) error
 	}
 	_, err := pipe.Exec(dao.Ctx)
 	if err != nil {
-		logger.Error("SetUserSettle redis ZAdd error", zap.Any("user_settles", settles), zap.Error(err))
+		log.Error("SetUserSettle redis ZAdd error", zap.Any("user_settles", settles), zap.Error(err))
 		return err
 	}
 	return nil
@@ -180,19 +179,19 @@ func PopUserSettle(client redis.UniversalClient) (uint64, int64, error) {
 	result, err := client.ZPopMin(dao.Ctx, dao.UserSettleSetKey, 1).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
-			logger.Info("PopUserSettle no user settle in set.")
+			log.Info("PopUserSettle no user settle in set.")
 			return 0, 0, nil
 		}
-		logger.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
+		log.Error("PopUserSettle redis ZPopMin error", zap.Error(err))
 		return 0, 0, err
 	}
 	if len(result) <= 0 {
-		logger.Info("PopUserSettle no user settle in set.")
+		log.Info("PopUserSettle no user settle in set.")
 		return 0, 0, nil
 	}
 	userID, ok := result[0].Member.(uint64)
 	if !ok {
-		logger.Error("PopUserSettle user_id assertion error", zap.Any("user_redis_z", result[0]))
+		log.Error("PopUserSettle user_id assertion error", zap.Any("user_redis_z", result[0]))
 		return 0, 0, errors.New("user_id assertion error")
 	}
 	settleSec := result[0].Score

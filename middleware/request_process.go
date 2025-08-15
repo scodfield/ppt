@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"net/http"
-	"ppt/logger"
+	"ppt/log"
 	"ppt/util"
 )
 
@@ -23,7 +23,7 @@ func RequestParse() gin.HandlerFunc {
 		var err error
 		err = c.Request.ParseForm()
 		if err != nil {
-			logger.Error("RequestParse ParseForm error", zap.Error(err))
+			log.Error("RequestParse ParseForm error", zap.Error(err))
 			c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10001, "error": err.Error()})
 			c.Abort()
 			return
@@ -33,7 +33,7 @@ func RequestParse() gin.HandlerFunc {
 			originParams = c.Request.FormValue("params")
 			plainBody, err = util.EcbDecrypt(originParams, RequestCryptAesKey)
 			if err != nil {
-				logger.Error("RequestParse EcbDecrypt error", zap.Error(err), zap.String("originParams", originParams))
+				log.Error("RequestParse EcbDecrypt error", zap.Error(err), zap.String("originParams", originParams))
 				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10001, "error": err.Error()})
 				c.Abort()
 				return
@@ -41,7 +41,7 @@ func RequestParse() gin.HandlerFunc {
 		case http.MethodPost, http.MethodPut:
 			payload, err := io.ReadAll(c.Request.Body)
 			if err != nil {
-				logger.Error("RequestParse read request body error", zap.Error(err))
+				log.Error("RequestParse read request body error", zap.Error(err))
 				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10001, "error": err.Error()})
 				c.Abort()
 				return
@@ -49,7 +49,7 @@ func RequestParse() gin.HandlerFunc {
 			originParams = string(payload)
 			plainBody, err = util.EcbDecrypt(originParams, RequestCryptAesKey)
 			if err != nil {
-				logger.Error("RequestParse EcbDecrypt originParams error", zap.Error(err), zap.String("originParams", originParams))
+				log.Error("RequestParse EcbDecrypt originParams error", zap.Error(err), zap.String("originParams", originParams))
 				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10002, "error": err.Error()})
 				c.Abort()
 				return
@@ -69,7 +69,7 @@ func RequestCheckSign() gin.HandlerFunc {
 		originParams := c.MustGet("OriginParams").(string)
 		calcSign := util.SignSHA256WithKey(originParams, SHA256SignKey)
 		if sign != calcSign {
-			logger.Error("RequestCheckSign sign not match", zap.String("req_sign", sign), zap.String("origin_params", originParams), zap.String("calc_sign", calcSign))
+			log.Error("RequestCheckSign sign not match", zap.String("req_sign", sign), zap.String("origin_params", originParams), zap.String("calc_sign", calcSign))
 			c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10003, "error": "sign not match"})
 			c.Abort()
 			return
@@ -83,7 +83,7 @@ func RequestDecompressGzip() gin.HandlerFunc {
 		if c.Request.Header.Get("Content-Encoding") == "gzip" {
 			gzipReader, err := gzip.NewReader(c.Request.Body)
 			if err != nil {
-				logger.Error("RequestDecompressGzip NewReader error", zap.Error(err))
+				log.Error("RequestDecompressGzip NewReader error", zap.Error(err))
 				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10001, "error": err.Error()})
 				c.Abort()
 				return
@@ -92,7 +92,7 @@ func RequestDecompressGzip() gin.HandlerFunc {
 
 			body, err := io.ReadAll(gzipReader)
 			if err != nil {
-				logger.Error("RequestDecompressGzip ReadAll error", zap.Error(err))
+				log.Error("RequestDecompressGzip ReadAll error", zap.Error(err))
 				c.JSON(http.StatusBadRequest, map[string]interface{}{"code": 10002, "error": err.Error()})
 				c.Abort()
 				return

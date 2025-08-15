@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 	"go.uber.org/zap"
-	"ppt/logger"
+	"ppt/log"
 	"ppt/nacos/wrapper"
 	"testing"
 )
@@ -11,8 +11,9 @@ import (
 func TestNacosClient(t *testing.T) {
 	dbConf, err := wrapper.GetNacosDBConfig()
 	if err != nil {
-		logger.Error("GetNacosDBConfig error", zap.Error(err))
+		log.Error("GetNacosDBConfig error", zap.Error(err))
 		return
 	}
+	log.Info("nacos_db_conf: ", zap.Any("nacos_db_conf", dbConf))
 	fmt.Printf("dbConf: %+v\n", dbConf)
 }

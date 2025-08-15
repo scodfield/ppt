@@ -4,7 +4,6 @@ import (
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 	"go.uber.org/zap"
-	"ppt/logger"
 	"sync"
 	"time"
 )
@@ -15,7 +14,7 @@ func GenerateTOTPKey(issuer string, account string) (*otp.Key, error) {
 		AccountName: account,
 	})
 	if err != nil {
-		logger.Error("GenerateTOTPKey totp Generate error", zap.String("issuer", issuer), zap.String("account", account), zap.Error(err))
+		log.Error("GenerateTOTPKey totp Generate error", zap.String("issuer", issuer), zap.String("account", account), zap.Error(err))
 		return nil, err
 	}
 	return key, nil

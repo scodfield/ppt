@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"ppt/dao"
-	"ppt/logger"
 )
 
 func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) ([]uint64, error) {
@@ -26,12 +25,12 @@ func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) (
 		filter["user_id"] = bson.M{"$in": batchUsers}
 		cursor, err := usersT.Find(dao.Ctx, filter, opts)
 		if err != nil {
-			logger.Error("FilterUsersByBrandID find error", zap.Error(err))
+			log.Error("FilterUsersByBrandID find error", zap.Error(err))
 			return nil, err
 		}
 		var tmp []map[string]interface{}
 		if err = cursor.All(dao.Ctx, &tmp); err != nil {
-			logger.Error("FilterUsersByBrandID cursor.All error", zap.Error(err))
+			log.Error("FilterUsersByBrandID cursor.All error", zap.Error(err))
 			return nil, err
 		}
 		for _, u := range tmp {
@@ -52,10 +51,10 @@ func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64
 		if batchSize > FriendVisitBulkWriteSize {
 			res, err := friendVisit.BulkWrite(dao.Ctx, operations)
 			if err != nil {
-				logger.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
+				log.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
 				return err
 			}
-			logger.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
+			log.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
 			batchSize = 0
 			operations = operations[:0]
 		}
@@ -66,10 +65,10 @@ func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64
 	if len(operations) > 0 {
 		res, err := friendVisit.BulkWrite(dao.Ctx, operations)
 		if err != nil {
-			logger.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
+			log.Error("UpdateUserFriendVisits bulk write error", zap.Error(err))
 			return err
 		}
-		logger.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
+		log.Info("UpdateUserFriendVisits bulk write result", zap.Any("result", res))
 		operations = nil
 	}
 	return nil

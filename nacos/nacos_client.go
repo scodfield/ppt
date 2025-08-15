@@ -6,7 +6,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
 	"github.com/nacos-group/nacos-sdk-go/v2/vo"
 	"go.uber.org/zap"
-	"ppt/logger"
+	"ppt/log"
 )
 
 type ListenConfig interface {
@@ -55,7 +55,7 @@ func NewConfigClient(nacosServe []constant.ServerConfig, spaceID string) (*Clien
 		constant.WithDisableUseSnapShot(true))
 	client, err := clients.NewConfigClient(vo.NacosClientParam{ClientConfig: clientConfig, ServerConfigs: nacosServe})
 	if err != nil {
-		logger.Error("Nacos NewConfigClient clients.NewConfigClient error", zap.Any("nacos_server", nacosServe), zap.String("space_id", spaceID), zap.Error(err))
+		log.Error("Nacos NewConfigClient clients.NewConfigClient error", zap.Any("nacos_server", nacosServe), zap.String("space_id", spaceID), zap.Error(err))
 		return nil, err
 	}
 	return &ClientConfig{

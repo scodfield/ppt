@@ -7,12 +7,11 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
-	"ppt/logger"
 	"runtime/debug"
 	"strings"
 )
 
-func GinRecover(log *logger.LoggerV2, printStack bool) gin.HandlerFunc {
+func GinRecover(log *log.LoggerV2, printStack bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -28,17 +27,17 @@ func GinRecover(log *logger.LoggerV2, printStack bool) gin.HandlerFunc {
 
 				request, _ := httputil.DumpRequest(c.Request, false)
 				if isBroken {
-					logger.Error("http connection is broken", zap.String("req_path", c.Request.URL.Path),
+					log.Error("http connection is broken", zap.String("req_path", c.Request.URL.Path),
 						zap.String("http_request", string(request)), zap.Any("error", err))
 					return
 				}
 
 				if printStack {
-					logger.Error("http recover panic", zap.String("req_path", c.Request.URL.Path),
+					log.Error("http recover panic", zap.String("req_path", c.Request.URL.Path),
 						zap.String("http_request", string(request)), zap.Any("error", err),
 						zap.Any("stack", string(debug.Stack())))
 				} else {
-					logger.Error("http recover panic", zap.String("req_path", c.Request.URL.Path),
+					log.Error("http recover panic", zap.String("req_path", c.Request.URL.Path),
 						zap.String("http_request", string(request)), zap.Any("error", err))
 				}
 				c.AbortWithStatus(http.StatusInternalServerError)

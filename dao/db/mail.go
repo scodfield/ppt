@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"ppt/dao"
-	"ppt/logger"
 	model2 "ppt/model"
 	"time"
 )
@@ -71,7 +70,7 @@ func (m *UserMailDao) CreateMailsByFirstOrCreate(userMail []*model2.UserMail) er
 		result := m.db.FirstOrCreate(&mail, model2.UserMail{UserID: mail.UserID, TemplateID: mail.TemplateID})
 		if result.Error != nil {
 			err = result.Error
-			logger.Error("UserMailDao.CreateMailsByFirstOrCreate first_or_create", zap.Error(result.Error))
+			log.Error("UserMailDao.CreateMailsByFirstOrCreate first_or_create", zap.Error(result.Error))
 			continue
 		}
 	}
@@ -83,7 +82,7 @@ func (m *UserMailDao) DeleteUserMailsByExpiredTime(now time.Time) ([]*model2.Use
 	var userMails []*model2.UserMail
 	expireTime := now.AddDate(0, 0, -dao.UserMailsExpiredDeleteDays).UnixMilli()
 	if err := m.db.Clauses(clause.Returning{Columns: []clause.Column{{Name: "user_id"}, {Name: "template_id"}, {Name: "awards"}}}).Where("expired_time <= ?", expireTime).Delete(&userMails).Error; err != nil {
-		logger.Error("UserMailDao.DeleteUserMailsByExpiredTime", zap.Error(err))
+		log.Error("UserMailDao.DeleteUserMailsByExpiredTime", zap.Error(err))
 		return nil, err
 	}
 	return userMails, nil
@@ -100,7 +99,7 @@ func (m *UserMailDao) DeleteUserMailsByExpiredTimeAndBatch(now time.Time, limit 
 		DELETE FROM user_mail WHERE id IN (SELECT id FROM batch_delete) RETURNING *
 	`
 	if err := m.db.Debug().Raw(raw, expireTime, limit).Scan(&userMails).Error; err != nil {
-		logger.Error("UserMailDao.DeleteUserMailsByExpiredTimeAndBatch", zap.String("raw_sql", raw), zap.Error(err))
+		log.Error("UserMailDao.DeleteUserMailsByExpiredTimeAndBatch", zap.String("raw_sql", raw), zap.Error(err))
 		return nil, err
 	}
 	return userMails, nil
@@ -111,14 +110,14 @@ func (m *UserMailDao) UpdateUserMailByTx(userID uint64, updates map[string]inter
 	tx := m.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
-			logger.Error("UpdateUserMailByTx recover panic", zap.Uint64("user_id", userID), zap.Any("mail_updates", updates), zap.Any("recover_panic", r), zap.Stack("stack"))
+			log.Error("UpdateUserMailByTx recover panic", zap.Uint64("user_id", userID), zap.Any("mail_updates", updates), zap.Any("recover_panic", r), zap.Stack("stack"))
 			tx.Rollback()
 		}
 	}()
 
 	tx.Model(&model2.UserMail{}).Clauses(clause.Locking{Strength: "UPDATE"}).Where("user_id = ?", userID).Updates(updates)
 	if err := tx.Commit().Error; err != nil {
-		logger.Error("UpdateUserMailByTx commit update error", zap.Error(err))
+		log.Error("UpdateUserMailByTx commit update error", zap.Error(err))
 		// 一般会自动回滚,安全起见
 		tx.Rollback()
 		return err
@@ -130,7 +129,7 @@ func (m *UserMailDao) UpdateUserMailByTx(userID uint64, updates map[string]inter
 func (m *UserMailDao) UpdateUserMailByTransaction(userID uint64, updates map[string]interface{}) error {
 	return m.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&model2.UserMail{}).Where("user_id = ?", userID).Updates(updates).Error; err != nil {
-			logger.Error("UpdateUserMailByTransaction updates error", zap.Error(err))
+			log.Error("UpdateUserMailByTransaction updates error", zap.Error(err))
 			return err
 		}
 		return nil

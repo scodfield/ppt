@@ -8,7 +8,6 @@ import (
 	"go.uber.org/zap"
 	"ppt/dao"
 	"ppt/dao/db"
-	"ppt/logger"
 	"time"
 )
 
@@ -26,7 +25,7 @@ var (
 func InitAsynq(redisCfg *dao.RedisConfig) (res error) {
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Error("InitAsynq panic recover", zap.Any("err", err))
+			log.Error("InitAsynq panic recover", zap.Any("err", err))
 			res = err.(error)
 		}
 	}()
@@ -47,7 +46,7 @@ func InitAsynq(redisCfg *dao.RedisConfig) (res error) {
 	}
 	asynqClient = asynq.NewClient(clientOpts)
 	if err := asynqClient.Ping(); err != nil {
-		logger.Error("InitAsynq ping fail", zap.Any("err", err))
+		log.Error("InitAsynq ping fail", zap.Any("err", err))
 		return err
 	}
 	asynqInspector = asynq.NewInspector(clientOpts)
@@ -58,13 +57,13 @@ func InitAsynq(redisCfg *dao.RedisConfig) (res error) {
 func CloseAsynq() {
 	if asynqClient != nil {
 		if err := asynqClient.Close(); err != nil {
-			logger.Error("CloseAsynq close asynq client fail", zap.Any("err", err))
+			log.Error("CloseAsynq close asynq client fail", zap.Any("err", err))
 		}
 		asynqClient = nil
 	}
 	if asynqInspector != nil {
 		if err := asynqInspector.Close(); err != nil {
-			logger.Error("CloseAsynq close inspector fail", zap.Any("err", err))
+			log.Error("CloseAsynq close inspector fail", zap.Any("err", err))
 		}
 		asynqInspector = nil
 	}
@@ -74,10 +73,10 @@ func CloseAsynq() {
 func EnqueueTaskInstant(task *asynq.Task) error {
 	info, err := asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Queue(TaskQueueTypeInstant))
 	if err != nil {
-		logger.Error("EnqueueTaskInstant enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		log.Error("EnqueueTaskInstant enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
 		return err
 	}
-	logger.Info("EnqueueTaskInstant enqueue success", zap.Any("info", info))
+	log.Info("EnqueueTaskInstant enqueue success", zap.Any("info", info))
 	return nil
 }
 
@@ -85,22 +84,22 @@ func EnqueueTaskInstant(task *asynq.Task) error {
 func EnqueueTaskLatency(task *asynq.Task, sendTime time.Time) error {
 	info, err := asynqClient.Enqueue(task, asynq.MaxRetry(3), asynq.Queue(TaskQueueTypeLatency), asynq.ProcessAt(sendTime))
 	if err != nil {
-		logger.Error("EnqueueTaskLatency enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		log.Error("EnqueueTaskLatency enqueue fail", zap.Any("asynq_task", task), zap.Any("err", err))
 		return err
 	}
 	cacheKey := fmt.Sprintf(db.TaskInfoCacheKey, info.ID)
 	infoBytes, err := json.Marshal(info)
 	if err != nil {
-		logger.Error("EnqueueTaskLatency marshal asynq task info fail", zap.Any("err", err))
+		log.Error("EnqueueTaskLatency marshal asynq task info fail", zap.Any("err", err))
 	}
 	exists, err := db.SetAsynqTaskCache(dao.RedisDB, cacheKey, infoBytes)
 	if err != nil {
-		logger.Error("EnqueueTaskLatency set cache fail", zap.Any("err", err))
+		log.Error("EnqueueTaskLatency set cache fail", zap.Any("err", err))
 	}
 	if exists {
-		logger.Info("EnqueueTaskLatency asynq task already in redis cache", zap.Any("info", info))
+		log.Info("EnqueueTaskLatency asynq task already in redis cache", zap.Any("info", info))
 	}
-	logger.Info("EnqueueTaskLatency enqueue success", zap.Any("info", info))
+	log.Info("EnqueueTaskLatency enqueue success", zap.Any("info", info))
 	return nil
 }
 
@@ -109,21 +108,21 @@ func DelTaskLatency(taskID string) error {
 	cacheKey := fmt.Sprintf(db.TaskInfoCacheKey, taskID)
 	taskBytes, err := db.GetAsynqTaskCache(dao.RedisDB, cacheKey)
 	if err != nil {
-		logger.Error("DelTaskLatency get task info fail", zap.String("task_id", taskID), zap.Any("err", err))
+		log.Error("DelTaskLatency get task info fail", zap.String("task_id", taskID), zap.Any("err", err))
 		return err
 	}
 	task := &asynq.Task{}
 	err = json.Unmarshal(taskBytes, task)
 	if err != nil {
-		logger.Error("DelTaskLatency unmarshal task fail", zap.String("task_id", taskID), zap.ByteString("task_bytes", taskBytes), zap.Any("err", err))
+		log.Error("DelTaskLatency unmarshal task fail", zap.String("task_id", taskID), zap.ByteString("task_bytes", taskBytes), zap.Any("err", err))
 		return err
 	}
 	err = asynqInspector.DeleteTask(TaskQueueTypeLatency, taskID)
 	if err != nil {
-		logger.Error("DelTaskLatency delete task fail", zap.Any("asynq_task", task), zap.Any("err", err))
+		log.Error("DelTaskLatency delete task fail", zap.Any("asynq_task", task), zap.Any("err", err))
 		return err
 	}
 	_ = db.DelAsynqTaskCache(dao.RedisDB, cacheKey)
-	logger.Info("DelTaskLatency delete task info success", zap.Any("asynq_task", task))
+	log.Info("DelTaskLatency delete task info success", zap.Any("asynq_task", task))
 	return nil
 }

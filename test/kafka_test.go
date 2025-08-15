@@ -2,10 +2,11 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"go.uber.org/zap"
 	"os"
 	"ppt/kafka"
-	"ppt/logger"
+	"ppt/log"
 	"testing"
 	"time"
 )
@@ -18,7 +19,13 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
+	var err error
 
+	err = log.InitUberZap()
+	if err != nil {
+		fmt.Println("InitUberZap error", zap.Error(err))
+		return
+	}
 }
 
 func teardown() {
@@ -32,7 +39,7 @@ func TestKafka(t *testing.T) {
 	topic := "ppt-test-statics"
 	asyncClient, err := kafka.InitSaramaAsyncClient(bootstrapServerAddr, clientID, topic)
 	if err != nil {
-		logger.Error("TestKafka InitSaramaAsyncClient error", zap.Error(err))
+		log.Error("TestKafka InitSaramaAsyncClient error", zap.Error(err))
 		return
 	}
 	kafka.ConsumeAsyncProducer(asyncClient)
@@ -47,7 +54,7 @@ func TestKafka(t *testing.T) {
 	}
 	kafkaMsgBytes, err := json.Marshal(kafkaMsg)
 	if err != nil {
-		logger.Error("TestKafka Marshal error", zap.Error(err))
+		log.Error("TestKafka Marshal error", zap.Error(err))
 		return
 	}
 	asyncClient.SendMessage([]byte(userID), kafkaMsgBytes)
@@ -62,7 +69,7 @@ func TestSaramaConsumer(t *testing.T) {
 	handler := &kafka.SaramaKafkaHandler{}
 	consumer, err := kafka.InitSaramaConsumerClient(bootstrapServerAddr, clientID, groupID, topics, handler)
 	if err != nil {
-		logger.Error("TestKafka InitSaramaConsumerClient error", zap.Error(err))
+		log.Error("TestKafka InitSaramaConsumerClient error", zap.Error(err))
 		return
 	}
 	consumer.Start()

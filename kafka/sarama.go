@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/IBM/sarama"
 	"go.uber.org/zap"
-	"ppt/logger"
+	"ppt/log"
 	"strings"
 	"sync"
 	"time"
@@ -36,13 +36,13 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	//}
 	client, err := sarama.NewClient([]string{bootstrapServer}, config)
 	if err != nil {
-		logger.Error("InitSaramaAsyncClient NewClient error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.Error(err))
+		log.Error("InitSaramaAsyncClient NewClient error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.Error(err))
 		return nil, err
 	}
 	defer client.Close()
 	topics, err := client.Topics()
 	if err != nil {
-		logger.Error("InitSaramaAsyncClient Topics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic), zap.Error(err))
+		log.Error("InitSaramaAsyncClient Topics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic), zap.Error(err))
 		return nil, err
 	}
 	var topicExists bool
@@ -52,7 +52,7 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 		}
 	}
 	if !topicExists {
-		logger.Error("InitSaramaAsyncClient Topic Not Found", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic))
+		log.Error("InitSaramaAsyncClient Topic Not Found", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic))
 		return nil, errors.New("topic does not exist")
 	}
 
@@ -78,7 +78,7 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 
 	producer, err := sarama.NewAsyncProducer([]string{bootstrapServer}, config)
 	if err != nil {
-		logger.Error("InitSaramaAsyncClient NewAsyncProducer error", zap.Error(err))
+		log.Error("InitSaramaAsyncClient NewAsyncProducer error", zap.Error(err))
 		return nil, err
 	}
 
@@ -109,7 +109,7 @@ func (sara *SaramaAsyncClient) Close() {
 
 func ConsumeAsyncProducer(asyncClient *SaramaAsyncClient) {
 	if asyncClient == nil {
-		logger.Info("SaramaAsyncClient nil producer")
+		log.Info("SaramaAsyncClient nil producer")
 		return
 	}
 	producer := asyncClient.producer
@@ -117,13 +117,13 @@ func ConsumeAsyncProducer(asyncClient *SaramaAsyncClient) {
 		for {
 			select {
 			case msg := <-producer.Successes():
-				logger.Info("ConsumeAsyncProducer success to send msg", zap.Any("msg", msg))
+				log.Info("ConsumeAsyncProducer success to send msg", zap.Any("msg", msg))
 			case err := <-producer.Errors():
 				if err != nil {
 					if errors.Is(err.Err, sarama.ErrUnknownTopicOrPartition) {
-						logger.Fatal("ConsumeAsyncProducer topic does not exists", zap.Error(err))
+						log.Fatal("ConsumeAsyncProducer topic does not exists", zap.Error(err))
 					}
-					logger.Error("SaramaAsyncClient GetAsyncProducer error", zap.Error(err))
+					log.Error("SaramaAsyncClient GetAsyncProducer error", zap.Error(err))
 				}
 			}
 		}
@@ -143,7 +143,7 @@ type SaramaConsumerClient struct {
 
 func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic []string, handler MessageHandler) (*SaramaConsumerClient, error) {
 	if bootstrapServer == "" || len(topic) <= 0 || handler == nil {
-		logger.Error("InitSaramaConsumerClient invalid parameters", zap.String("bootstrap_server", bootstrapServer), zap.Strings("topic", topic), zap.Any("handler_func", handler))
+		log.Error("InitSaramaConsumerClient invalid parameters", zap.String("bootstrap_server", bootstrapServer), zap.Strings("topic", topic), zap.Any("handler_func", handler))
 		return nil, errors.New("invalid parameters")
 	}
 	config := sarama.NewConfig()
@@ -165,7 +165,7 @@ func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic [
 	brokers := strings.Split(bootstrapServer, ",")
 	consumerGroup, err := sarama.NewConsumerGroup(brokers, groupID, config)
 	if err != nil {
-		logger.Error("InitSaramaConsumerClient NewConsumerGroup error", zap.Error(err))
+		log.Error("InitSaramaConsumerClient NewConsumerGroup error", zap.Error(err))
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -182,7 +182,7 @@ func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic [
 func (sara *SaramaConsumerClient) markReady() {
 	sara.readyOnce.Do(func() {
 		close(sara.ready)
-		logger.Info("SaramaConsumerClient ready to mark ready")
+		log.Info("SaramaConsumerClient ready to mark ready")
 	})
 }
 
@@ -203,7 +203,7 @@ func (sara *SaramaConsumerClient) Start() error {
 			default:
 				err := sara.consumerGroup.Consume(sara.ctx, sara.topic, handler)
 				if err != nil {
-					logger.Error("SaramaConsumerClient ConsumerGroup Consume error", zap.Error(err))
+					log.Error("SaramaConsumerClient ConsumerGroup Consume error", zap.Error(err))
 					time.Sleep(5 * time.Second)
 				}
 			}
@@ -211,7 +211,7 @@ func (sara *SaramaConsumerClient) Start() error {
 	}()
 
 	<-sara.ready
-	logger.Info("SaramaConsumerClient start success")
+	log.Info("SaramaConsumerClient start success")
 	return nil
 }
 
@@ -219,7 +219,7 @@ func (sara *SaramaConsumerClient) Close() error {
 	sara.cancel()  // 发送取消信号
 	sara.wg.Wait() // 等待consumer退出
 	if err := sara.consumerGroup.Close(); err != nil {
-		logger.Error("SaramaConsumerClient Close() error", zap.Error(err))
+		log.Error("SaramaConsumerClient Close() error", zap.Error(err))
 	}
 	return nil
 }

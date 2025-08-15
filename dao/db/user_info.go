@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"ppt/dao"
-	"ppt/logger"
 )
 
 func UpdateUserBalance(mongoClient *mongo.Client, userID uint64, amount int64) (int64, error) {
@@ -31,9 +30,9 @@ func UpdateUserLogin(mongoClient *mongo.Client, userID uint64, loginTime int64, 
 		"login_ip":   loginIP,
 	})
 	if err != nil {
-		logger.Error("UpdateUserLogin insert login log error", zap.Uint64("user_id", userID), zap.Int64("login_time", loginTime), zap.String("login_ip", loginIP), zap.Error(err))
+		log.Error("UpdateUserLogin insert login log error", zap.Uint64("user_id", userID), zap.Int64("login_time", loginTime), zap.String("login_ip", loginIP), zap.Error(err))
 		return err
 	}
-	logger.Info("UpdateUserLogin success to insert one login log", zap.Uint64("user_id", userID), zap.Any("inserted_id", res.InsertedID))
+	log.Info("UpdateUserLogin success to insert one login log", zap.Uint64("user_id", userID), zap.Any("inserted_id", res.InsertedID))
 	return nil
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"net/http"
-	"ppt/logger"
 	"ppt/middleware"
 	"time"
 )
@@ -24,7 +23,7 @@ func (s *HttpServer) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := s.server.Shutdown(ctx); err != nil {
-		logger.Fatal("http server shutdown error", zap.Error(err))
+		log.Fatal("http server shutdown error", zap.Error(err))
 	}
 }
 
@@ -41,7 +40,7 @@ func initRouter() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(gin.LoggerWithConfig(gin.LoggerConfig{}))
-	router.Use(middleware.GinRecover(&logger.Logger, true))
+	router.Use(middleware.GinRecover(&log.Logger, true))
 	router.Use(middleware.Prom(), middleware.Cors())
 
 	router.GET("/ping", func(c *gin.Context) {

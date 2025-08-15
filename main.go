@@ -3,12 +3,13 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/judwhite/go-svc"
 	"go.uber.org/zap"
 	"net/http"
 	pptCache "ppt/cache"
 	"ppt/dao"
-	"ppt/logger"
+	"ppt/log"
 	"ppt/monitor"
 	"ppt/router"
 	"runtime/debug"
@@ -25,7 +26,7 @@ func (wg *WaitGroupWrapper) Wrap(cb func()) {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				logger.Error("WaitGroupWrapper recover panic", zap.Any("recover_err", err))
+				log.Error("WaitGroupWrapper recover panic", zap.Any("recover_err", err))
 				debug.PrintStack()
 			}
 		}()
@@ -44,21 +45,26 @@ func (s *program) Init(env svc.Environment) error {
 	monitor.InitProm()
 
 	var err error
+	err = log.InitUberZap()
+	if err != nil {
+		fmt.Println("InitUberZap error", zap.Error(err))
+		return err
+	}
 	redisCfg := &dao.RedisConfig{}
 	if err = dao.InitRedis(redisCfg); err != nil {
-		logger.Error("ppt init redis error", zap.Error(err))
+		log.Error("ppt init redis error", zap.Error(err))
 		return err
 	}
 
 	pgCfg := &dao.PgConfig{}
 	if err = dao.InitPg(pgCfg); err != nil {
-		logger.Error("ppt init pg error", zap.Error(err))
+		log.Error("ppt init pg error", zap.Error(err))
 		return err
 	}
 
 	mongoCfg := &dao.MongoConfig{}
 	if err = dao.InitMongo(mongoCfg); err != nil {
-		logger.Error("ppt init mongo error", zap.Error(err))
+		log.Error("ppt init mongo error", zap.Error(err))
 		return err
 	}
 
@@ -71,12 +77,12 @@ func (s *program) Init(env svc.Environment) error {
 func (s *program) Start() error {
 	s.Wrap(func() {
 		if err := s.httpServer.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("ppt start http server error", zap.Error(err))
+			log.Error("ppt start http server error", zap.Error(err))
 			panic(err)
 		}
 	})
 
-	logger.Info("ppt start http server success")
+	log.Info("ppt start http server success")
 	return nil
 }
 
@@ -98,6 +104,6 @@ func (s *program) initPort() {
 func main() {
 	app := &program{}
 	if err := svc.Run(app, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGQUIT); err != nil {
-		logger.Error("ppt main run error", zap.Error(err))
+		log.Error("ppt main run error", zap.Error(err))
 	}
 }

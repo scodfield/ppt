@@ -5,7 +5,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"ppt/dao"
-	"ppt/logger"
 	"time"
 )
 
@@ -24,7 +23,7 @@ func GetAsynqTaskCache(client redis.UniversalClient, key string) ([]byte, error)
 		if errors.Is(result.Err(), redis.Nil) {
 			return nil, nil
 		}
-		logger.Error("GetAsynqTaskCache Get error", zap.String("asynq_task_key", key), zap.Error(result.Err()))
+		log.Error("GetAsynqTaskCache Get error", zap.String("asynq_task_key", key), zap.Error(result.Err()))
 		return nil, result.Err()
 	}
 	return result.Bytes()
