@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"os"
+	"ppt/nacos/wrapper"
 	"sync"
 	"time"
 )
@@ -14,13 +15,13 @@ var (
 	redisOnce sync.Once
 )
 
-func InitRedis(redisCfg *RedisConfig) error {
+func InitRedis(redisCfg *wrapper.RedisConfig) error {
 	var err error
 	redisOnce.Do(func() {
 		url := fmt.Sprintf("%s:%d", redisCfg.Host, redisCfg.Port)
 		host, _ := os.Hostname()
 		clientName := host + "-" + fmt.Sprintf("%d", os.Getpid())
-		if redisCfg.IsClustered {
+		if redisCfg.IsCluster {
 			client := redis.NewClusterClient(&redis.ClusterOptions{
 				Addrs:      []string{url},
 				Password:   redisCfg.Password,
@@ -62,5 +63,6 @@ func InitRedis(redisCfg *RedisConfig) error {
 func CloseRedis() {
 	if RedisDB != nil {
 		_ = RedisDB.Close()
+		RedisDB = nil
 	}
 }

@@ -3,49 +3,65 @@ package dao
 import (
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"ppt/config"
+	"ppt/log"
+	"ppt/nacos/wrapper"
 	"sync"
 	"time"
 )
 
 var (
-	PgDB    *gorm.DB
-	pgxPool *pgxpool.Pool
-	pgOnce  sync.Once
+	PgDB     *gorm.DB
+	PgMailDB *gorm.DB
+	pgxPool  *pgxpool.Pool
+	pgOnce   sync.Once
 )
 
-func InitPg(cfg *PgConfig) error {
+func InitPg(cfg *wrapper.PgConfig) error {
+	var err error
 	pgOnce.Do(func() {
-		dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database, cfg.SSLMode)
-		pg := postgres.New(postgres.Config{DSN: dsn})
-		db, err := gorm.Open(pg, &gorm.Config{})
+		mailDsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.UserName, cfg.Password, cfg.Host, cfg.Port, cfg.MailDBName, cfg.SSLMode)
+		PgMailDB, err = initPgGorm(mailDsn)
 		if err != nil {
-			panic("Failed to connect to pg: " + err.Error())
-		}
-		sqlDB, err := db.DB()
-		if err != nil {
-			panic("Failed to connect to pg: " + err.Error())
-		}
-		sqlDB.SetMaxOpenConns(20)
-		sqlDB.SetMaxIdleConns(5)
-		sqlDB.SetConnMaxLifetime(time.Second * 10)
-		if err = sqlDB.Ping(); err != nil {
-			panic("Failed to connect to pg: " + err.Error())
-		}
-		PgDB = db.Debug()
-		if config.Env != "test" {
-			PgDB.Logger = logger.Default.LogMode(logger.Silent)
+			panic(err)
 		}
 
-		pgxPool, err = initPgxPool(dsn)
-		if err != nil {
-			panic("Failed to connect to pg: " + err.Error())
-		}
+		//pgxPool, err = initPgxPool(dsn)
+		//if err != nil {
+		//	panic("Failed to connect to pg: " + err.Error())
+		//}
 	})
 	return nil
+}
+
+func initPgGorm(dsn string) (*gorm.DB, error) {
+	pg := postgres.New(postgres.Config{DSN: dsn})
+	db, err := gorm.Open(pg, &gorm.Config{})
+	if err != nil {
+		log.Error("initPgGorm error", zap.String("dsn", dsn), zap.Error(err))
+		return nil, err
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Error("initPgGorm failed to connect pg", zap.String("dsn", dsn), zap.Error(err))
+		return nil, err
+	}
+	sqlDB.SetMaxOpenConns(20)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(time.Second * 10)
+	if err = sqlDB.Ping(); err != nil {
+		log.Error("initPgGorm failed to ping pg", zap.String("dsn", dsn), zap.Error(err))
+		return nil, err
+	}
+	db = db.Debug()
+	if config.Env != "test" {
+		db.Logger = logger.Default.LogMode(logger.Silent)
+	}
+	return db, nil
 }
 
 func initPgxPool(dsn string) (*pgxpool.Pool, error) {

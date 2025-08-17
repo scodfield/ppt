@@ -25,5 +25,5 @@ type PgConfig struct {
 	UserName   string `json:"user_name"`
 	Password   string `json:"password"`
 	MailDBName string `json:"mail_db_name,omitempty"`
-	SSLMode    bool   `json:"ssl_mode,omitempty"`
+	SSLMode    string `json:"ssl_mode,omitempty"`
 }

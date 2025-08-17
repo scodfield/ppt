@@ -11,6 +11,7 @@ import (
 	"ppt/dao"
 	"ppt/log"
 	"ppt/monitor"
+	"ppt/nacos/wrapper"
 	"ppt/router"
 	"runtime/debug"
 	"sync"
@@ -50,20 +51,24 @@ func (s *program) Init(env svc.Environment) error {
 		fmt.Println("InitUberZap error", zap.Error(err))
 		return err
 	}
-	redisCfg := &dao.RedisConfig{}
-	if err = dao.InitRedis(redisCfg); err != nil {
+
+	dbCfg, err := wrapper.GetNacosDBConfig()
+	if err != nil {
+		log.Error("GetNacosDBConfig error", zap.Error(err))
+		return err
+	}
+
+	if err = dao.InitRedis(&dbCfg.RedisConfig); err != nil {
 		log.Error("ppt init redis error", zap.Error(err))
 		return err
 	}
 
-	pgCfg := &dao.PgConfig{}
-	if err = dao.InitPg(pgCfg); err != nil {
+	if err = dao.InitPg(&dbCfg.PgConfig); err != nil {
 		log.Error("ppt init pg error", zap.Error(err))
 		return err
 	}
 
-	mongoCfg := &dao.MongoConfig{}
-	if err = dao.InitMongo(mongoCfg); err != nil {
+	if err = dao.InitMongo(dbCfg); err != nil {
 		log.Error("ppt init mongo error", zap.Error(err))
 		return err
 	}

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"os"
+	"ppt/dao"
 	"ppt/kafka"
 	"ppt/log"
+	"ppt/nacos/wrapper"
 	"testing"
 	"time"
 )
@@ -24,6 +26,17 @@ func setup() {
 	err = log.InitUberZap()
 	if err != nil {
 		fmt.Println("InitUberZap error", zap.Error(err))
+		return
+	}
+
+	dbCfg, err := wrapper.GetNacosDBConfig()
+	if err != nil {
+		log.Error("GetNacosDBConfig error", zap.Error(err))
+		return
+	}
+
+	if err = dao.InitRedis(&dbCfg.RedisConfig); err != nil {
+		log.Error("ppt init redis error", zap.Error(err))
 		return
 	}
 }
