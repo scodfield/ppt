@@ -39,6 +39,16 @@ func setup() {
 		log.Error("ppt init redis error", zap.Error(err))
 		return
 	}
+
+	if err = dao.InitPg(&dbCfg.PgConfig); err != nil {
+		log.Error("ppt init pg error", zap.Error(err))
+		return
+	}
+
+	if err = dao.InitMongo(dbCfg); err != nil {
+		log.Error("ppt init mongo error", zap.Error(err))
+		return
+	}
 }
 
 func teardown() {
