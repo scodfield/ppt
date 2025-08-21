@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"os"
-	"ppt/dao"
 	"ppt/kafka"
 	"ppt/log"
-	"ppt/nacos/wrapper"
 	"testing"
 	"time"
 )
@@ -29,26 +27,32 @@ func setup() {
 		return
 	}
 
-	dbCfg, err := wrapper.GetNacosDBConfig()
-	if err != nil {
-		log.Error("GetNacosDBConfig error", zap.Error(err))
-		return
-	}
+	//dbCfg, err := wrapper.GetNacosDBConfig()
+	//if err != nil {
+	//	log.Error("GetNacosDBConfig error", zap.Error(err))
+	//	return
+	//}
+	//
+	//if err = dao.InitRedis(&dbCfg.RedisConfig); err != nil {
+	//	log.Error("ppt init redis error", zap.Error(err))
+	//	return
+	//}
 
-	if err = dao.InitRedis(&dbCfg.RedisConfig); err != nil {
-		log.Error("ppt init redis error", zap.Error(err))
-		return
-	}
+	//if err = dao.InitPg(&dbCfg.PgConfig); err != nil {
+	//	log.Error("ppt init pg error", zap.Error(err))
+	//	return
+	//}
 
-	if err = dao.InitPg(&dbCfg.PgConfig); err != nil {
-		log.Error("ppt init pg error", zap.Error(err))
-		return
-	}
+	//if err = dao.InitMongo(dbCfg); err != nil {
+	//	log.Error("ppt init mongo error", zap.Error(err))
+	//	return
+	//}
 
-	if err = dao.InitMongo(dbCfg); err != nil {
-		log.Error("ppt init mongo error", zap.Error(err))
-		return
-	}
+	//if err = pptCache.InitUserCache(); err != nil {
+	//	log.Error("ppt cache init user error", zap.Error(err))
+	//	return
+	//}
+
 }
 
 func teardown() {

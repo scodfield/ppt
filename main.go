@@ -73,7 +73,11 @@ func (s *program) Init(env svc.Environment) error {
 		return err
 	}
 
-	pptCache.InitUserCache(dao.PgDB, dao.RedisDB, dao.UserCacheDefaultExpiration, dao.UserCacheDefaultCleanUp)
+	if err = pptCache.InitUserCache(); err != nil {
+		log.Error("ppt cache init user error", zap.Error(err))
+		return err
+	}
+	
 	s.httpServer = router.NewHttpServer(s.port)
 
 	return nil

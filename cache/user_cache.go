@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"ppt/dao"
 	"ppt/model"
-	"time"
 )
 
 var (
@@ -19,12 +18,18 @@ type UserCacheT struct {
 	redis redis.UniversalClient
 }
 
-func InitUserCache(pgSql *gorm.DB, redis redis.UniversalClient, defaultExpiration, cleanupExpiration time.Duration) {
+func InitUserCache() error {
+	var err error
+	err = initUserCache()
+	return err
+}
 
-	UserCache = NewCache[uint64, any](defaultExpiration, cleanupExpiration, &UserCacheT{
-		pgSql: pgSql,
-		redis: redis,
+func initUserCache() error {
+	UserCache = NewCache[uint64, any](dao.UserCacheDefaultExpiration, dao.UserCacheDefaultCleanUp, &UserCacheT{
+		pgSql: dao.PgDB,
+		redis: dao.RedisDB,
 	}, false)
+	return nil
 }
 
 func (u *UserCacheT) Load(userID uint64) (interface{}, error) {
