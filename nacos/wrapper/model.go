@@ -20,10 +20,10 @@ type RedisConfig struct {
 }
 
 type PgConfig struct {
-	Host       string `json:"host"`
-	Port       int    `json:"port"`
-	UserName   string `json:"user_name"`
-	Password   string `json:"password"`
-	MailDBName string `json:"mail_db_name,omitempty"`
-	SSLMode    string `json:"ssl_mode,omitempty"`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	UserName string `json:"user_name"`
+	Password string `json:"password"`
+	DBName   string `json:"db_name"`
+	SSLMode  string `json:"ssl_mode,omitempty"`
 }

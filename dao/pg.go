@@ -15,25 +15,24 @@ import (
 )
 
 var (
-	PgDB     *gorm.DB
-	PgMailDB *gorm.DB
-	pgxPool  *pgxpool.Pool
-	pgOnce   sync.Once
+	PgDB    *gorm.DB
+	pgxPool *pgxpool.Pool
+	pgOnce  sync.Once
 )
 
 func InitPg(cfg *wrapper.PgConfig) error {
 	var err error
 	pgOnce.Do(func() {
-		mailDsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.UserName, cfg.Password, cfg.Host, cfg.Port, cfg.MailDBName, cfg.SSLMode)
-		PgMailDB, err = initPgGorm(mailDsn)
+		dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", cfg.UserName, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode)
+		PgDB, err = initPgGorm(dsn)
 		if err != nil {
 			panic(err)
 		}
 
-		//pgxPool, err = initPgxPool(dsn)
-		//if err != nil {
-		//	panic("Failed to connect to pg: " + err.Error())
-		//}
+		pgxPool, err = initPgxPool(dsn)
+		if err != nil {
+			panic("Failed to connect to pg: " + err.Error())
+		}
 	})
 	return nil
 }
@@ -58,7 +57,7 @@ func initPgGorm(dsn string) (*gorm.DB, error) {
 		return nil, err
 	}
 	db = db.Debug()
-	if config.Env != "test" {
+	if config.Env == "prod" {
 		db.Logger = logger.Default.LogMode(logger.Silent)
 	}
 	return db, nil
@@ -67,6 +66,7 @@ func initPgGorm(dsn string) (*gorm.DB, error) {
 func initPgxPool(dsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
+		log.Error("initPgxPool parse config error", zap.String("dsn", dsn), zap.Error(err))
 		return nil, err
 	}
 	// 连接池配置
@@ -78,9 +78,11 @@ func initPgxPool(dsn string) (*pgxpool.Pool, error) {
 
 	pool, err := pgxpool.NewWithConfig(Ctx, config)
 	if err != nil {
+		log.Error("initPgxPool new pool with config error", zap.String("dsn", dsn), zap.Any("pool_config", *config), zap.Error(err))
 		return nil, err
 	}
 	if err = pool.Ping(Ctx); err != nil {
+		log.Error("initPgxPool pool ping error", zap.String("dsn", dsn), zap.Any("pool_config", *config), zap.Error(err))
 		return nil, err
 	}
 	return pool, nil
