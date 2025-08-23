@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"ppt/dao"
+	"ppt/log"
 	"ppt/model"
 	"strconv"
 	"time"

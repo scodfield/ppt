@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"os"
+	pptCache "ppt/cache"
 	"ppt/dao"
 	"ppt/kafka"
 	"ppt/log"
@@ -45,15 +46,15 @@ func setup() {
 		return
 	}
 
-	//if err = dao.InitMongo(dbCfg); err != nil {
-	//	log.Error("ppt init mongo error", zap.Error(err))
-	//	return
-	//}
+	if err = dao.InitMongo(dbCfg); err != nil {
+		log.Error("ppt init mongo error", zap.Error(err))
+		return
+	}
 
-	//if err = pptCache.InitUserCache(); err != nil {
-	//	log.Error("ppt cache init user error", zap.Error(err))
-	//	return
-	//}
+	if err = pptCache.InitUserCache(); err != nil {
+		log.Error("ppt cache init user error", zap.Error(err))
+		return
+	}
 
 }
 

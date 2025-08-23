@@ -5,9 +5,12 @@ import (
 	uuid2 "github.com/google/uuid"
 	"go.uber.org/zap"
 	"net"
+	"ppt/dao"
+	"ppt/dao/db"
 	"ppt/log"
-	"ppt/login/db"
+	logindb "ppt/login/db"
 	"ppt/model"
+	"ppt/util"
 	"testing"
 	"time"
 )
@@ -28,10 +31,11 @@ func TestUserCache(t *testing.T) {
 		CreatedAt: now,
 		UpdateAt:  now,
 	}
-	_ = db.SetUserCache(userCache)
+	_ = logindb.SetUserCache(userCache)
 
-	userCache2, _ := db.GetUserCache(userID)
+	userCache2, _ := logindb.GetUserCache(userID)
 	fmt.Printf("userCache2: %+v\n", userCache2)
+
 }
 
 func TestNetDial(t *testing.T) {
@@ -57,4 +61,21 @@ func TestNetDial(t *testing.T) {
 		return
 	}
 	log.Info("TestNetDial success", zap.Any("buffer", buffer[:n]))
+}
+
+func TestActiveUser(t *testing.T) {
+	now := time.Now()
+	userID := uint64(1001)
+	activeKey := fmt.Sprintf(dao.UserActiveKey, util.TimeToDateStr(now))
+	if err := db.SetActiveUsers(dao.RedisDB, activeKey, []uint64{userID}); err != nil {
+		log.Error("TestActiveUser SetActiveUsers error", zap.Error(err))
+		return
+	}
+
+	isActive, err := db.IsActiveUser(dao.RedisDB, activeKey, userID)
+	if err != nil {
+		log.Error("TestActiveUser IsActiveUser error", zap.Error(err))
+		return
+	}
+	fmt.Printf("isActive: %+v\n", isActive)
 }

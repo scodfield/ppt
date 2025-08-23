@@ -12,6 +12,7 @@ const (
 	UserLoginTimeQueueKey      = "ppt:user:login_time_queue:%d" // 用户最近登录时间
 	UserSettleSetKey           = "ppt:user:settle_set"
 	UserNameRegisterKey        = "ppt:user:name_register:%s" // 用户名注册
+	UserActiveKey              = "ppt:user:active:%s"        // 活跃用户
 	MongoDBPTT                 = "ppt"
 	MongoCollUsers             = "users"
 	MongoCollUserCredit        = "user_credit"

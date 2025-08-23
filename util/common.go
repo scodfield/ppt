@@ -144,3 +144,19 @@ func Int32ToBytes(v int32) []byte {
 func ByteToInt32(v []byte) int32 {
 	return int32(binary.LittleEndian.Uint32(v))
 }
+
+func UnixSecToDateStr(sec int64) string {
+	t := time.Unix(sec, 0)
+	return t.Format(time.DateOnly)
+}
+
+func UnixMilliToDateStr(milli int64) string {
+	sec := milli / 1000
+	nsec := (milli % 1000) * 1000000
+	t := time.Unix(sec, nsec)
+	return t.Format(time.DateOnly)
+}
+
+func TimeToDateStr(t time.Time) string {
+	return t.Format(time.DateOnly)
+}

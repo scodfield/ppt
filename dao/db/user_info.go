@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 	"ppt/dao"
+	"ppt/log"
 )
 
 func UpdateUserBalance(mongoClient *mongo.Client, userID uint64, amount int64) (int64, error) {
