@@ -136,3 +136,8 @@ func (m *UserMailDao) UpdateUserMailByTransaction(userID uint64, updates map[str
 		return nil
 	}, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 }
+
+// CreateMailTemplate 创建邮件模板
+func (m *UserMailDao) CreateMailTemplate(mailTemplate *model2.MailTemplate) error {
+	return m.db.Create(mailTemplate).Error
+}

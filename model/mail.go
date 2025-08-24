@@ -9,10 +9,10 @@ import (
 type MailTemplate struct {
 	BaseModel
 	SenderID   uint64         `gorm:"not null;column:sender_id;comment:发送者ID" json:"sender_id"`
-	SenderName datatypes.JSON `gorm:"type:jsonb;column:sender_name;comment:发送者" json:"sender_name"`
-	Title      datatypes.JSON `gorm:"type:jsonb;column:title;comment:标题" json:"title"`
-	Content    datatypes.JSON `gorm:"type:jsonb;column:content;comment:内容" json:"content"`
-	Accessory  datatypes.JSON `gorm:"type:jsonb;column:accessory;comment:附件奖励" json:"accessory"`
+	SenderName datatypes.JSON `gorm:"not null;type:jsonb;column:sender_name;comment:发送者" json:"sender_name"`
+	Title      datatypes.JSON `gorm:"not null;type:jsonb;column:title;comment:标题" json:"title"`
+	Content    datatypes.JSON `gorm:"not null;type:jsonb;column:content;comment:内容" json:"content"`
+	Awards     datatypes.JSON `gorm:"type:jsonb;column:awards;comment:附件奖励" json:"awards"`
 	Type       int32          `gorm:"not null;column:type;comment:邮件类型" json:"type"`
 	Status     int32          `gorm:"not null;column:status;comment:邮件状态" json:"status"`
 	ValidDays  int32          `gorm:"column:valid_days;comment:有效天数" json:"valid_days"`
@@ -43,4 +43,8 @@ type UserMail struct {
 
 func (UserMail) TableName() string {
 	return "user_mail"
+}
+
+func MigrateUserMail(db *gorm.DB) error {
+	return db.AutoMigrate(&UserMail{})
 }
