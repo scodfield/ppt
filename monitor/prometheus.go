@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
 )
 
 var (
@@ -45,5 +44,5 @@ func InitProm() {
 	prometheus.MustRegister(RequestStatusCount)
 	prometheus.MustRegister(RequestMethodCount)
 	prometheus.MustRegister(UserLoginCount)
-	prometheus.MustRegister(collectors.NewGoCollector())
+	//prometheus.MustRegister(collectors.NewGoCollector())
 }
