@@ -10,7 +10,7 @@ import (
 )
 
 func UpdateUserBalance(mongoClient *mongo.Client, userID uint64, amount int64) (int64, error) {
-	userCredit := mongoClient.Database(dao.MongoDBPTT).Collection(dao.MongoCollUserCredit)
+	userCredit := mongoClient.Database(dao.MongoDBPPT).Collection(dao.MongoCollUserCredit)
 	filter := bson.M{"user_id": userID}
 	update := bson.M{"$inc": bson.M{"balance": amount}}
 	updateOpts := options.FindOneAndUpdate()
@@ -24,7 +24,7 @@ func UpdateUserBalance(mongoClient *mongo.Client, userID uint64, amount int64) (
 }
 
 func UpdateUserLogin(mongoClient *mongo.Client, userID uint64, loginTime int64, loginIP string) error {
-	userLogin := mongoClient.Database(dao.MongoDBPTT).Collection(dao.MongoCollUserLogin)
+	userLogin := mongoClient.Database(dao.MongoDBPPT).Collection(dao.MongoCollUserLogin)
 	res, err := userLogin.InsertOne(dao.Ctx, map[string]interface{}{
 		"user_id":    userID,
 		"login_time": loginTime,

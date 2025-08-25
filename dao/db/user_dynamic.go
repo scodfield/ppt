@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,7 +12,7 @@ import (
 
 func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) ([]uint64, error) {
 	var result []uint64
-	usersT := client.Database(dao.MongoDBPTT).Collection(dao.MongoCollUsers)
+	usersT := client.Database(dao.MongoDBPPT).Collection(dao.MongoCollUsers)
 	opts := options.Find()
 	opts.SetProjection(bson.M{"user_id": 1})
 	filter := bson.M{"brand_id": brandID}
@@ -45,7 +46,7 @@ func FilterUsersByBrandID(client *mongo.Client, users []uint64, brandID int32) (
 const FriendVisitBulkWriteSize = 1000
 
 func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64) error {
-	friendVisit := client.Database(dao.MongoDBPTT).Collection(dao.MongoCollFriendVisit)
+	friendVisit := client.Database(dao.MongoDBPPT).Collection(dao.MongoCollFriendVisit)
 	batchSize := 0
 	var operations []mongo.WriteModel
 	for i := 0; i < len(visits); i++ {
@@ -73,4 +74,36 @@ func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64
 		operations = nil
 	}
 	return nil
+}
+
+// UpdateIPReg 更新IP注冊表
+func UpdateIPReg(client *mongo.Client, userID uint64, ipReg string) error {
+	ipRegColl := client.Database(dao.MongoDBPPT).Collection(dao.MongoCollIPReg)
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	var updatedIPReg bson.M
+	if err := ipRegColl.FindOneAndUpdate(dao.Ctx, bson.M{"_id": ipReg}, bson.M{"$set": bson.M{"ip": ipReg}, "$inc": bson.M{"total_ip_reg": 1}, "$push": bson.M{"reg_user_ids": userID}}, opts).Decode(&updatedIPReg); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Info("UpdateIPReg FindOneAndUpdate create ip_reg", zap.Error(err))
+			return nil
+		}
+		log.Error("UpdateIPReg FindOneAndUpdate error", zap.Uint64("user_id", userID), zap.String("ip_reg", ipReg), zap.Error(err))
+		return err
+	}
+	log.Info("UpdateIPReg success", zap.Uint64("user_id", userID), zap.Any("updated_ip_reg", updatedIPReg))
+	return nil
+}
+
+// GetIPReg 获取指定IP注册信息
+func GetIPReg(client *mongo.Client, ip string) (map[string]interface{}, error) {
+	ipRegColl := client.Database(dao.MongoDBPPT).Collection(dao.MongoCollIPReg)
+	IpReg := make(map[string]interface{})
+	if err := ipRegColl.FindOne(dao.Ctx, bson.M{"_id": ip}).Decode(&IpReg); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Info("GetIPReg FindOne no document", zap.Error(err))
+			return nil, nil
+		}
+		log.Error("GetIPReg FindOne error", zap.String("ip", ip), zap.Error(err))
+		return nil, err
+	}
+	return IpReg, nil
 }

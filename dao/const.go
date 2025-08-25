@@ -13,12 +13,13 @@ const (
 	UserSettleSetKey           = "ppt:user:settle_set"
 	UserNameRegisterKey        = "ppt:user:name_register:%s" // 用户名注册
 	UserActiveKey              = "ppt:user:active:%s"        // 活跃用户
-	MongoDBPTT                 = "ppt"
+	MongoDBPPT                 = "ppt"
 	MongoCollUsers             = "users"
 	MongoCollUserCredit        = "user_credit"
 	MongoCollUserLogin         = "user_login"
 	MongoCollFriendVisit       = "friend_visit"
-	UserMailsExpiredDeleteDays = 7 // 过期删除天数
+	MongoCollIPReg             = "ip_reg" // IP注冊表
+	UserMailsExpiredDeleteDays = 7        // 过期删除天数
 )
 
 var (
