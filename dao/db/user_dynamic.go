@@ -80,8 +80,10 @@ func UpdateUserFriendVisits(client *mongo.Client, userID uint64, visits []uint64
 func UpdateIPReg(client *mongo.Client, userID uint64, ipReg string) error {
 	ipRegColl := client.Database(dao.MongoDBPPT).Collection(dao.MongoCollIPReg)
 	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.M{"_id": ipReg}
+	updates := bson.M{"$set": bson.M{"ip": ipReg}, "$inc": bson.M{"total_ip_reg": 1}, "$push": bson.M{"reg_user_ids": userID}}
 	var updatedIPReg bson.M
-	if err := ipRegColl.FindOneAndUpdate(dao.Ctx, bson.M{"_id": ipReg}, bson.M{"$set": bson.M{"ip": ipReg}, "$inc": bson.M{"total_ip_reg": 1}, "$push": bson.M{"reg_user_ids": userID}}, opts).Decode(&updatedIPReg); err != nil {
+	if err := ipRegColl.FindOneAndUpdate(dao.Ctx, filter, updates, opts).Decode(&updatedIPReg); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			log.Info("UpdateIPReg FindOneAndUpdate create ip_reg", zap.Error(err))
 			return nil

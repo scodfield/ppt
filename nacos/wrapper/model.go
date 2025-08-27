@@ -4,6 +4,7 @@ type DBConfig struct {
 	RedisConfig RedisConfig `json:"redis"`
 	PgConfig    PgConfig    `json:"pg"`
 	MongoConfig string      `json:"mongo"`
+	KafkaConfig KafkaConfig `json:"kafka"`
 }
 
 type RedisConfig struct {
@@ -26,4 +27,15 @@ type PgConfig struct {
 	Password string `json:"password"`
 	DBName   string `json:"db_name"`
 	SSLMode  string `json:"ssl_mode,omitempty"`
+}
+
+type KafkaConfig struct {
+	BootstrapServer string `json:"bootstrap_servers"`
+	Retries         int    `json:"retries"`
+	RetryBackoffMs  int    `json:"retry_backoff_ms"`
+	LingerMs        int    `json:"linger_ms"`
+	Partitions      int    `json:"partitions"`
+	BatchSize       int    `json:"batch_size"`
+	BufferMemory    int64  `json:"buffer_memory"`
+	MaxBlockMs      int    `json:"max_block_ms"`
 }

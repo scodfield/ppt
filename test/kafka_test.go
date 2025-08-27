@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	pptCache "ppt/cache"
+	"ppt/config"
 	"ppt/dao"
 	"ppt/kafka"
 	"ppt/log"
@@ -23,6 +24,7 @@ func TestMain(m *testing.M) {
 
 func setup() {
 	var err error
+	config.InitGlobalConfig()
 
 	err = log.InitUberZap()
 	if err != nil {
@@ -56,10 +58,19 @@ func setup() {
 		return
 	}
 
+	if err = kafka.InitKafkaSarama(&dbCfg.KafkaConfig); err != nil {
+		log.Error("ppt init kafka error", zap.Error(err))
+		return
+	}
+
+	kafka.StartSaramaKafka()
 }
 
 func teardown() {
-
+	dao.CloseRedis()
+	dao.ClosePg()
+	dao.CloseMongo()
+	kafka.CloseSaramaKafka()
 }
 
 func TestKafka(t *testing.T) {

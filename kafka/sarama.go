@@ -3,13 +3,45 @@ package kafka
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/IBM/sarama"
 	"go.uber.org/zap"
+	"os"
+	"ppt/config"
 	"ppt/log"
+	"ppt/nacos/wrapper"
 	"strings"
 	"sync"
 	"time"
 )
+
+var (
+	KafkaProducerClient *SaramaAsyncClient
+)
+
+func InitKafkaSarama(kafkaCfg *wrapper.KafkaConfig) error {
+	var err error
+	clientID := GetKafkaClientID()
+	topic := GetKafkaTopic("statics")
+	KafkaProducerClient, err = InitSaramaAsyncClient(kafkaCfg.BootstrapServer, clientID, topic)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetKafkaClientID() string {
+	hostName, err := os.Hostname()
+	if err != nil {
+		log.Error("GetKafkaClientID Hostname error", zap.String("service_name", config.AppName), zap.Error(err))
+		return ""
+	}
+	return fmt.Sprintf("%s-%s-%s", config.AppName, config.Env, hostName)
+}
+
+func GetKafkaTopic(moduleName string) string {
+	return fmt.Sprintf("%s-%s-%s", config.AppName, config.Env, moduleName)
+}
 
 type SaramaAsyncClient struct {
 	producer sarama.AsyncProducer
@@ -40,20 +72,23 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 		return nil, err
 	}
 	defer client.Close()
-	topics, err := client.Topics()
-	if err != nil {
-		log.Error("InitSaramaAsyncClient Topics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic), zap.Error(err))
-		return nil, err
-	}
-	var topicExists bool
-	for _, remoteTopic := range topics {
-		if remoteTopic == topic {
-			topicExists = true
+
+	if len(topic) > 0 {
+		topics, err := client.Topics()
+		if err != nil {
+			log.Error("InitSaramaAsyncClient Topics error", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic), zap.Error(err))
+			return nil, err
 		}
-	}
-	if !topicExists {
-		log.Error("InitSaramaAsyncClient Topic Not Found", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic))
-		return nil, errors.New("topic does not exist")
+		var topicExists bool
+		for _, remoteTopic := range topics {
+			if remoteTopic == topic {
+				topicExists = true
+			}
+		}
+		if !topicExists {
+			log.Error("InitSaramaAsyncClient Topic Not Found", zap.String("kafka_bootstrap_server", bootstrapServer), zap.String("kafka_topic", topic))
+			return nil, errors.New("topic does not exist")
+		}
 	}
 
 	config.ClientID = clientID
@@ -230,5 +265,16 @@ func (sara *SaramaConsumerClient) WaitUntilReady(timeout time.Duration) error {
 		return nil
 	case <-time.After(timeout):
 		return errors.New("timeout waiting for consumer ready")
+	}
+}
+
+func StartSaramaKafka() {
+	ConsumeAsyncProducer(KafkaProducerClient)
+}
+
+func CloseSaramaKafka() {
+	if KafkaProducerClient != nil {
+		KafkaProducerClient.Close()
+		KafkaProducerClient = nil
 	}
 }

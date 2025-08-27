@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	pptCache "ppt/cache"
+	"ppt/config"
 	"ppt/dao"
+	"ppt/kafka"
 	"ppt/log"
 	"ppt/monitor"
 	"ppt/nacos/wrapper"
@@ -44,6 +46,7 @@ type program struct {
 func (s *program) Init(env svc.Environment) error {
 	s.initPort()
 	monitor.InitProm()
+	config.InitGlobalConfig()
 
 	var err error
 	err = log.InitUberZap()
@@ -77,13 +80,22 @@ func (s *program) Init(env svc.Environment) error {
 		log.Error("ppt cache init user error", zap.Error(err))
 		return err
 	}
-	
+
+	if err = kafka.InitKafkaSarama(&dbCfg.KafkaConfig); err != nil {
+		log.Error("ppt init kafka error", zap.Error(err))
+		return err
+	}
+
 	s.httpServer = router.NewHttpServer(s.port)
 
 	return nil
 }
 
 func (s *program) Start() error {
+	s.Wrap(func() {
+		kafka.StartSaramaKafka()
+	})
+
 	s.Wrap(func() {
 		if err := s.httpServer.Start(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Error("ppt start http server error", zap.Error(err))
@@ -101,6 +113,7 @@ func (s *program) Stop() error {
 	dao.CloseRedis()
 	dao.ClosePg()
 	dao.CloseMongo()
+	kafka.CloseSaramaKafka()
 	return nil
 }
 
