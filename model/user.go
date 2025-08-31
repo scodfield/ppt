@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gorm.io/gorm"
@@ -10,7 +9,7 @@ import (
 )
 
 type User struct {
-	ID        string `gorm:"type:uuid;primaryKey" json:"id"`
+	BaseModel
 	UserID    uint64 `gorm:"not null;uniqueIndex;column:user_id;comment:玩家UserID" json:"user_id"`
 	Username  string `gorm:"not null;size:255;column:user_name;comment:玩家名" json:"user_name"`
 	Password  string `gorm:"not null;size:255;column:password;comment:密码" json:"password"`
@@ -32,12 +31,7 @@ func MigrateUserModel(db *gorm.DB) error {
 
 // CreateUser 创建用户
 func CreateUser(userID uint64, userName, password, email string) (*User, error) {
-	uuidV7, err := uuid.NewV7()
-	if err != nil {
-		return nil, err
-	}
 	return &User{
-		ID:       uuidV7.String(),
 		UserID:   userID,
 		Username: userName,
 		Password: password,

@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"ppt/log"
+	loginController "ppt/login/controllers"
 	"ppt/middleware"
 	"time"
 )
@@ -47,6 +48,10 @@ func initRouter() *gin.Engine {
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
 	})
+
+	{
+		loginController.RegModelHandler(router)
+	}
 
 	router.GET("/metrics", gin.WrapF(middleware.HttpCheckIP([]string{}, promhttp.Handler()).ServeHTTP))
 	return router

@@ -5,7 +5,9 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"net/http"
+	"ppt/log"
 	"ppt/login/db"
 	"ppt/util"
 )
@@ -25,28 +27,37 @@ func LoginGetHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "login.html", gin.H{})
 }
 
-type PlayerReg struct {
-	Name string `form:"name" json:"name" binding:"required"`
-	Pass string `form:"pass" json:"pass" binding:"required"`
+type UserRegistration struct {
+	Name  string `form:"name" json:"name" binding:"required"`
+	Pass  string `form:"pass" json:"pass" binding:"required"`
+	Email string `form:"email" json:"email" binding:"required"`
 }
 
 func AccRegistryHandler(c *gin.Context) {
-	var playerReg PlayerReg
-	if err := c.ShouldBind(&playerReg); err != nil {
+	var userReg UserRegistration
+	if err := c.ShouldBind(&userReg); err != nil {
+		log.Error("AccRegistryHandler UserRegistration bind error", zap.Error(err))
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	existed, err := db.GetRedis().HSetNX(ctx, "table_acc", playerReg.Name, playerReg.Pass).Result()
+	existed, err := db.WhetherUserNameRegistered(userReg.Name)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if !existed {
-		c.JSON(http.StatusOK, gin.H{"regResponse": "Acc has already registed"})
+		log.Info("AccRegistryHandler user name", zap.String("name", userReg.Name), zap.String("email", userReg.Email))
+		c.JSON(http.StatusOK, gin.H{"regResponse": "Acc has already registered"})
+		return
+	}
+	err = db.RegUserName(userReg.Name)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	if UserID := db.GenerateUserID(); UserID > 0 {
 		c.JSON(http.StatusOK, gin.H{
-			"loginResult": "Welcome aboard " + playerReg.Name,
+			"loginResult": "Welcome aboard " + userReg.Name,
 			"userID":      UserID,
 		})
 		return

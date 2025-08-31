@@ -11,8 +11,8 @@ const (
 	UserFuncSwitchKey          = "ppt:user:func_switch:%d"      // 用户功能开关缓存
 	UserLoginTimeQueueKey      = "ppt:user:login_time_queue:%d" // 用户最近登录时间
 	UserSettleSetKey           = "ppt:user:settle_set"
-	UserNameRegisterKey        = "ppt:user:name_register:%s" // 用户名注册
-	UserActiveKey              = "ppt:user:active:%s"        // 活跃用户
+	UserNameRegisterKey        = "ppt:user:name_registered" // 用户名注册
+	UserActiveKey              = "ppt:user:active:%s"       // 活跃用户
 	MongoDBPPT                 = "ppt"
 	MongoCollUsers             = "users"
 	MongoCollUserCredit        = "user_credit"
