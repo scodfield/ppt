@@ -94,6 +94,7 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	config.ClientID = clientID
 
 	//config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Idempotent = true
 	config.Producer.Retry.Max = 3
 	config.Producer.Retry.Backoff = 100 * time.Millisecond
 	config.Producer.RequiredAcks = sarama.NoResponse // 确认机制
