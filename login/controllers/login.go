@@ -7,6 +7,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"net/http"
+	"ppt/dao"
+	commonDB "ppt/dao/db"
 	"ppt/log"
 	"ppt/login/db"
 	"ppt/util"
@@ -55,6 +57,11 @@ func AccRegistryHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	userID, err := commonDB.GenerateUserID(dao.RedisDB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user_id is invalid"})
+		return
+	}
 	if UserID := db.GenerateUserID(); UserID > 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"loginResult": "Welcome aboard " + userReg.Name,
@@ -64,6 +71,7 @@ func AccRegistryHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"loginResult": "Sorry, something went wrong ",
+		"userID":      userID,
 	})
 }
 

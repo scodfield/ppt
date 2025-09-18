@@ -198,3 +198,46 @@ func PopUserSettle(client redis.UniversalClient) (uint64, int64, error) {
 	settleSec := result[0].Score
 	return userID, int64(settleSec), nil
 }
+
+// GenerateUserID 生成新的用户UserID
+func GenerateUserID(client redis.UniversalClient) (uint64, error) {
+	userID, err := client.Incr(dao.Ctx, dao.UserIDKey).Result()
+	if err != nil {
+		log.Error("GenerateUserID redis Incr error", zap.Error(err))
+		return 0, err
+	}
+	if userID > dao.UserIDMax {
+		log.Warn("GenerateUserID redis UserID > max", zap.Int64("user_id", userID))
+		return 0, errors.New("user_id out of range")
+	}
+	return uint64(userID), nil
+}
+
+// GenerateMultipleUserIDs 生成多个用户UserID
+func GenerateMultipleUserIDs(client redis.UniversalClient, num int) ([]uint64, error) {
+	pipe := client.Pipeline()
+	results := make([]*redis.IntCmd, num)
+	for i := 0; i < num; i++ {
+		results[i] = pipe.Incr(dao.Ctx, dao.UserIDKey)
+	}
+	_, err := pipe.Exec(dao.Ctx)
+	if err != nil {
+		log.Error("GenerateMultipleUserIDs pipe exec error", zap.Error(err))
+		return nil, err
+	}
+
+	userIDs := make([]uint64, num)
+	for i, result := range results {
+		id, err := result.Result()
+		if err != nil {
+			log.Error("GenerateMultipleUserIDs result.Result() error", zap.Error(err))
+			return nil, err
+		}
+		if id > dao.UserIDMax {
+			log.Warn("GenerateMultipleUserIDs result id > max", zap.Int64("user_id", id))
+			return nil, errors.New("user_id out of range")
+		}
+		userIDs[i] = uint64(id)
+	}
+	return userIDs, nil
+}

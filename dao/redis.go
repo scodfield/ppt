@@ -66,7 +66,23 @@ func InitRedis(redisCfg *wrapper.RedisConfig) error {
 		}
 		RedisDB = r
 	}
+	err = initUserID()
 	return err
+}
+
+func initUserID() error {
+	exists, err := RedisDB.Exists(Ctx, UserIDKey).Result()
+	if err != nil {
+		log.Error("initUserID RedisDB.Exists error", zap.Error(err))
+		return err
+	}
+	if exists == 0 {
+		if err = RedisDB.Set(Ctx, UserIDKey, UserIDMin, 0).Err(); err != nil {
+			log.Error("initUserID RedisDB.Set error", zap.Error(err))
+			return err
+		}
+	}
+	return nil
 }
 
 func CloseRedis() {

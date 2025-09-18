@@ -18,8 +18,11 @@ const (
 	MongoCollUserCredit        = "user_credit"
 	MongoCollUserLogin         = "user_login"
 	MongoCollFriendVisit       = "friend_visit"
-	MongoCollIPReg             = "ip_reg" // IP注冊表
-	UserMailsExpiredDeleteDays = 7        // 过期删除天数
+	MongoCollIPReg             = "ip_reg"           // IP注冊表
+	UserMailsExpiredDeleteDays = 7                  // 过期删除天数
+	UserIDKey                  = "ppt:user:user_id" // 用户UserID key
+	UserIDMin                  = 100000000          // 最小UserID
+	UserIDMax                  = 999999999          // 最大UserID
 )
 
 var (
