@@ -187,11 +187,17 @@ func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic [
 		return nil, errors.New("sarama NewConfig return nil")
 	}
 	config.ClientID = clientID
-	rangeStrategy := sarama.NewBalanceStrategyRange()
-	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{rangeStrategy} // 工厂函数创建策略
-	config.Consumer.Offsets.Initial = sarama.OffsetOldest                                     // 从最早的消息开始消费
-	config.Consumer.Offsets.AutoCommit.Enable = true                                          // 启用自动提交偏移量
-	config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second                             // 自动提交间隔
+	//rangeStrategy := sarama.NewBalanceStrategyRange()
+	//config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{rangeStrategy} // 工厂函数创建策略
+	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{
+		sarama.NewBalanceStrategySticky(), // 传统粘性
+	}
+	config.Consumer.Group.Session.Timeout = time.Second * 30 // 避免网络波动导致不必要的重平衡
+	config.Consumer.Group.Heartbeat.Interval = time.Second * 8
+
+	config.Consumer.Offsets.Initial = sarama.OffsetOldest         // 从最早的消息开始消费
+	config.Consumer.Offsets.AutoCommit.Enable = true              // 启用自动提交偏移量
+	config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second // 自动提交间隔
 
 	config.Net.SASL.Enable = false
 	config.Net.TLS.Enable = false
