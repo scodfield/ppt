@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"net/http"
+	"ppt/config"
 	"ppt/log"
 	loginController "ppt/login/controllers"
 	"ppt/middleware"
@@ -47,6 +48,13 @@ func initRouter() *gin.Engine {
 
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
+	})
+	router.GET("/version", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"version":    config.Version,
+			"build_time": config.BuildTime,
+			"git_commit": config.GitCommit,
+		})
 	})
 
 	{

@@ -14,9 +14,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 COPY . .
 
+ARG VERSION="dev"
+ARG BUILD_TIME
+ARG GIT_COMMIT
+
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o ppt .
+    go build -ldflags="\
+    -X config.Version=$VERSION \
+    -X config.BuildTime=${BUILD_TIME:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')} \
+    -X config.GitCommit=${GIT_COMMIT:-$(git rev-parse HEAD 2>/dev/null || echo 'unknown')} " \
+    -o ppt .
 
 FROM alpine:latest
 RUN apk update --no-cache && apk add --no-cache ca-certificates

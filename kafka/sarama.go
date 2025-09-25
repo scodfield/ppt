@@ -97,7 +97,7 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	config.Producer.Idempotent = true
 	config.Producer.Retry.Max = 3
 	config.Producer.Retry.Backoff = 100 * time.Millisecond
-	config.Producer.RequiredAcks = sarama.NoResponse // 确认机制
+	config.Producer.RequiredAcks = sarama.WaitForAll // Idempotent-确认机制
 	config.Producer.Compression = sarama.CompressionGZIP
 	config.Producer.Flush.Frequency = 500 * time.Millisecond
 
@@ -109,6 +109,7 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	config.Producer.Return.Successes = false
 	config.Producer.Return.Errors = true
 
+	config.Net.MaxOpenRequests = 1 // Idempotent
 	config.Net.SASL.Enable = false
 	config.Net.TLS.Enable = false
 
