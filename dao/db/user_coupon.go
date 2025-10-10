@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// BatchUpdateExpiredCoupons 使用游标批量更新过期优惠券
+// BatchUpdateExpiredCoupons 使用游标批量更新过期优惠券(超大数据)
 func BatchUpdateExpiredCoupons(db *gorm.DB, batchSize int) error {
 	var cursorID uint64
 	var cursorCouponID uuid.UUID
@@ -92,5 +92,28 @@ func updateCurrentBatch(db *gorm.DB, coupons []model.UserCoupon) error {
 	}
 
 	log.Info("updateCurrentBatch success", zap.Int64("success_updated", result.RowsAffected))
+	return nil
+}
+
+// DirectedUpdateExpiredCoupons 批量更新方法(数据量不大)
+func DirectedUpdateExpiredCoupons(db *gorm.DB) error {
+	currentTime := time.Now()
+
+	log.Info("Begin DirectedUpdateExpiredCoupons", zap.String("current_time", currentTime.Format(time.RFC3339)))
+
+	// 直接使用UPDATE语句批量更新，避免数据迁移
+	result := db.Model(&model.UserCoupon{}).
+		Where("expired_at <= ? AND coupon_status = ?",
+			currentTime.UnixMilli(), model.CouponStatusAvailable).
+		Updates(map[string]interface{}{
+			"coupon_status": model.CouponStatusExpired,
+			"updated_at":    currentTime.UnixMilli(),
+		})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	log.Info("End DirectedUpdateExpiredCoupons", zap.Int64("success_updated", result.RowsAffected))
 	return nil
 }
