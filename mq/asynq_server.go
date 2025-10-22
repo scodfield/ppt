@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
-	"ppt/dao"
 	"ppt/log"
+	"ppt/nacos/wrapper"
 	"sync"
 	"syscall"
 )
@@ -19,7 +19,7 @@ var (
 	sigs        = make(chan os.Signal, 1)
 )
 
-func InitAsynqServer(redisConfig *dao.RedisConfig) error {
+func InitAsynqServer(redisConfig *wrapper.RedisConfig) error {
 	var err error
 	once.Do(func() {
 		redisAddr := fmt.Sprintf("%s:%d", redisConfig.Host, redisConfig.Port)
@@ -38,7 +38,7 @@ func InitAsynqServer(redisConfig *dao.RedisConfig) error {
 			DB:        TaskDBNum,
 			TLSConfig: tlsConfig,
 		}
-		if redisConfig.IsClustered {
+		if redisConfig.IsCluster {
 			clientOpt = asynq.RedisClusterClientOpt{
 				Addrs:     []string{redisAddr},
 				Password:  redisConfig.Password,
@@ -63,21 +63,19 @@ func InitAsynqServer(redisConfig *dao.RedisConfig) error {
 }
 
 func StartAsynqServer() {
-	go func() {
-		mux := asynq.NewServeMux()
-		mux.HandleFunc(PPTTaskType, HandlePptTask)
-		if err := asynqServer.Start(mux); err != nil {
-			log.Error("asynq server Start error", zap.Error(err))
-			return
-		}
-		log.Info("asynq server started")
-		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-		_ = <-sigs
-		log.Info("asynq server shutting down")
-		asynqServer.Stop()
-		asynqServer.Shutdown()
-		asynqServer = nil
-	}()
+	mux := asynq.NewServeMux()
+	mux.HandleFunc(PPTTaskType, HandlePptTask)
+	if err := asynqServer.Start(mux); err != nil {
+		log.Error("asynq server Start error", zap.Error(err))
+		return
+	}
+	log.Info("asynq server started")
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+	_ = <-sigs
+	log.Info("asynq server shutting down")
+	asynqServer.Stop()
+	asynqServer.Shutdown()
+	asynqServer = nil
 }
 
 func CloseAsynqServer() {

@@ -9,6 +9,7 @@ import (
 	"ppt/dao"
 	"ppt/dao/db"
 	"ppt/log"
+	"ppt/nacos/wrapper"
 	"time"
 )
 
@@ -17,7 +18,7 @@ var (
 	asynqInspector *asynq.Inspector
 )
 
-func InitAsynq(redisCfg *dao.RedisConfig) (res error) {
+func InitAsynq(redisCfg *wrapper.RedisConfig) (res error) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Error("InitAsynq panic recover", zap.Any("err", err))

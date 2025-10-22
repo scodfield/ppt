@@ -13,6 +13,7 @@ import (
 	"ppt/kafka"
 	"ppt/log"
 	"ppt/monitor"
+	"ppt/mq"
 	"ppt/nacos/wrapper"
 	"ppt/router"
 	"runtime/debug"
@@ -86,12 +87,26 @@ func (s *program) Init(env svc.Environment) error {
 		return err
 	}
 
+	if err = mq.InitAsynqServer(&dbCfg.RedisConfig); err != nil {
+		log.Error("ppt init asynq server error", zap.Error(err))
+		return err
+	}
+
+	if err = mq.InitAsynq(&dbCfg.RedisConfig); err != nil {
+		log.Error("ppt init asynq client error", zap.Error(err))
+		return err
+	}
+
 	s.httpServer = router.NewHttpServer(s.port)
 
 	return nil
 }
 
 func (s *program) Start() error {
+	s.Wrap(func() {
+		mq.StartAsynqServer()
+	})
+
 	s.Wrap(func() {
 		kafka.StartSaramaKafka()
 	})
@@ -109,6 +124,8 @@ func (s *program) Start() error {
 
 func (s *program) Stop() error {
 	s.httpServer.Stop()
+	mq.CloseAsynq()
+	mq.CloseAsynqServer()
 
 	dao.CloseRedis()
 	dao.ClosePg()
