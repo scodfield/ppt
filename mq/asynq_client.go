@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-const (
-	TaskDBNum            = 15
-	TaskQueueTypeInstant = "task_queue_instant" // 实时队列
-	TaskQueueTypeLatency = "task_queue_latency" // 延时队列
-)
-
 var (
 	asynqClient    *asynq.Client
 	asynqInspector *asynq.Inspector
