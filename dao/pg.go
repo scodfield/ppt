@@ -49,9 +49,15 @@ func initPgGorm(dsn string) (*gorm.DB, error) {
 		log.Error("initPgGorm failed to connect pg", zap.String("dsn", dsn), zap.Error(err))
 		return nil, err
 	}
-	sqlDB.SetMaxOpenConns(20)
-	sqlDB.SetMaxIdleConns(5)
-	sqlDB.SetConnMaxLifetime(time.Second * 10)
+	// 微服务适当降低配置
+	//sqlDB.SetMaxOpenConns(20)
+	//sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(3)
+	// 定时清理连接资源
+	sqlDB.SetConnMaxLifetime(time.Hour * 1)
+	// 及时释放多余连接
+	sqlDB.SetConnMaxIdleTime(time.Minute * 3)
 	if err = sqlDB.Ping(); err != nil {
 		log.Error("initPgGorm failed to ping pg", zap.String("dsn", dsn), zap.Error(err))
 		return nil, err
