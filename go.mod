@@ -10,7 +10,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mitchellh/mapstructure v1.5.0
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.mongodb.org/mongo-driver v1.17.0
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
+	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -36,7 +36,6 @@ require (
 	github.com/astaxie/beego v1.12.3
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-sql-driver/mysql v1.8.1
-	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/uuid v1.6.0
 	github.com/hibiken/asynq v0.25.1
 	github.com/jackc/pgx/v5 v5.5.5
@@ -101,6 +100,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
