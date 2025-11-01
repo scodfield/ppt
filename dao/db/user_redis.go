@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// UserLockRedis 用户关键信息强一致性锁
 type UserLockRedis struct {
 	client redis.UniversalClient
 }
@@ -24,6 +25,55 @@ func NewUserLockRedis(client redis.UniversalClient) *UserLockRedis {
 func (u *UserLockRedis) SetUserLock(userID uint64, expire int64, du time.Duration) (bool, error) {
 	key := fmt.Sprintf(dao.UserLockKey, userID)
 	return u.client.SetNX(dao.Ctx, key, expire, du).Result()
+}
+
+func (u *UserLockRedis) DelUserLock(userID uint64, oldExpire int64, du time.Duration) error {
+	key := fmt.Sprintf(dao.UserLockKey, userID)
+	currExpireStr, err := u.client.Get(dao.Ctx, key).Result()
+	if err != nil {
+		log.Error("UserLockRedis get error", zap.Uint64("user_id", userID), zap.String("key", key), zap.Error(err))
+		return err
+	}
+	currExpire, err := strconv.ParseInt(currExpireStr, 10, 64)
+	if err != nil {
+		log.Error("UserLockRedis strconv ParseInt error", zap.Uint64("user_id", userID), zap.String("curr_value", currExpireStr), zap.Error(err))
+		return err
+	}
+	if currExpire != oldExpire {
+		// 其它服务已持有锁
+		log.Info("UserLockRedis other service has get the lock")
+		return nil
+	}
+	// 有较小的竟态窗口
+	newExpireStr, err := u.client.GetDel(dao.Ctx, key).Result()
+	if err != nil {
+		// 锁已过期
+		if errors.Is(err, redis.Nil) {
+			return nil
+		}
+		log.Error("UserLockRedis DelUserLock error", zap.Uint64("user_id", userID), zap.String("key", key), zap.Error(err))
+		return err
+	}
+	newExpire, err := strconv.ParseInt(newExpireStr, 10, 64)
+	if err != nil {
+		log.Error("UserLockRedis strconv ParseInt error", zap.Uint64("user_id", userID), zap.String("new_value", newExpireStr), zap.Error(err))
+		return err
+	}
+	if newExpire == oldExpire {
+		// 安全释放
+		return nil
+	}
+	// 新服务占有锁,将newExpire设置回去,极端情况下可能又有其它服务占有锁,需使用SetNX
+	succ, err := u.client.SetNX(dao.Ctx, key, newExpire, du).Result()
+	if err != nil {
+		log.Error("UserLockRedis SetNX set new lock expire error", zap.Uint64("user_id", userID), zap.Int64("new_value", newExpire), zap.Error(err))
+		return err
+	}
+	if !succ {
+		// 极端情况
+		return errors.New("set new lock expire failed, other service get lock")
+	}
+	return nil
 }
 
 func GetActiveUsers(client redis.UniversalClient, key string) ([]uint64, error) {
