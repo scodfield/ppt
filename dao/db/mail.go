@@ -78,11 +78,12 @@ func (m *UserMailDao) CreateMailsByFirstOrCreate(userMail []*model2.UserMail) er
 	return err
 }
 
-// DeleteUserMailsByExpiredTime 删除邮件
+// DeleteUserMailsByExpiredTime 删除过期邮件
 func (m *UserMailDao) DeleteUserMailsByExpiredTime(now time.Time) ([]*model2.UserMail, error) {
 	var userMails []*model2.UserMail
-	expireTime := now.AddDate(0, 0, -dao.UserMailsExpiredDeleteDays).UnixMilli()
-	if err := m.db.Clauses(clause.Returning{Columns: []clause.Column{{Name: "user_id"}, {Name: "template_id"}, {Name: "awards"}}}).Where("expired_time <= ?", expireTime).Delete(&userMails).Error; err != nil {
+	expireTime := now.AddDate(0, 0, -dao.UserMailExpiredDeleteDays).UnixMilli()
+	minExpireTime := now.AddDate(0, 0, -dao.UserMailExpiredMaxDeleteDays).UnixMilli()
+	if err := m.db.Clauses(clause.Returning{Columns: []clause.Column{{Name: "user_id"}, {Name: "template_id"}, {Name: "awards"}}}).Where("expired_time > ? and expired_time <= ?", minExpireTime, expireTime).Delete(&userMails).Error; err != nil {
 		log.Error("UserMailDao.DeleteUserMailsByExpiredTime", zap.Error(err))
 		return nil, err
 	}
@@ -92,14 +93,16 @@ func (m *UserMailDao) DeleteUserMailsByExpiredTime(now time.Time) ([]*model2.Use
 // DeleteUserMailsByExpiredTimeAndBatch 批量删除邮件
 func (m *UserMailDao) DeleteUserMailsByExpiredTimeAndBatch(now time.Time, limit int32) ([]*model2.UserMail, error) {
 	var userMails []*model2.UserMail
-	expireTime := now.AddDate(0, 0, -dao.UserMailsExpiredDeleteDays).UnixMilli()
+	expireTime := now.AddDate(0, 0, -dao.UserMailExpiredDeleteDays).UnixMilli()
+	minExpireTime := now.AddDate(0, 0, -dao.UserMailExpiredMaxDeleteDays).UnixMilli()
+	// 移除 Order by
 	raw := `
 		WITH batch_delete AS (
-			SELECT id FROM user_mail WHERE expired_time <= ? ORDER BY id DESC LIMIT ?
+			SELECT id FROM user_mail WHERE expired_time > ? and expired_time <= ? LIMIT ?
 		)
 		DELETE FROM user_mail WHERE id IN (SELECT id FROM batch_delete) RETURNING *
 	`
-	if err := m.db.Debug().Raw(raw, expireTime, limit).Scan(&userMails).Error; err != nil {
+	if err := m.db.Debug().Raw(raw, minExpireTime, expireTime, limit).Scan(&userMails).Error; err != nil {
 		log.Error("UserMailDao.DeleteUserMailsByExpiredTimeAndBatch", zap.String("raw_sql", raw), zap.Error(err))
 		return nil, err
 	}
