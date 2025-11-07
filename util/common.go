@@ -3,8 +3,10 @@ package util
 import (
 	"encoding/binary"
 	"fmt"
+	"go.uber.org/zap"
 	"net/url"
 	"ppt/config"
+	"ppt/log"
 	"reflect"
 	"regexp"
 	"sort"
@@ -159,4 +161,36 @@ func UnixMilliToDateStr(milli int64) string {
 
 func TimeToDateStr(t time.Time) string {
 	return t.Format(time.DateOnly)
+}
+
+// GetTz 获取时区
+func GetTz(timeZone string) *time.Location {
+	loc, err := time.LoadLocation("")
+	if err != nil {
+		log.Error("GetTz LoadLocation error", zap.Error(err))
+		return nil
+	}
+	if timeZone != "" {
+		loc, err = time.LoadLocation(timeZone)
+		if err != nil {
+			log.Error("GetTz spec LoadLocation error", zap.String("time_zone", timeZone), zap.Error(err))
+			return nil
+		}
+	}
+	return loc
+}
+
+// CalcDiffSetGeneric 求差集
+func CalcDiffSetGeneric[T comparable](s1, s2 []T) []T {
+	set2 := make(map[T]struct{}, len(s2))
+	for _, v := range s2 {
+		set2[v] = struct{}{}
+	}
+	diff := make([]T, 0, len(s1))
+	for _, v := range s1 {
+		if _, ok := set2[v]; !ok {
+			diff = append(diff, v)
+		}
+	}
+	return diff
 }
