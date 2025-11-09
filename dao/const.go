@@ -21,7 +21,6 @@ const (
 	MongoCollIPReg               = "ip_reg" // IP注冊表
 	UserMailExpiredKey           = "ppt:user:mail_expired"
 	UserMailExpiredKeyExpire     = 6 * time.Hour
-	UserMailExpiredDeleteBatch   = 20000
 	UserMailExpiredDeleteDays    = 7                  // 过期删除天数
 	UserMailExpiredMaxDeleteDays = 15                 // 最大过期删除天数
 	UserIDKey                    = "ppt:user:user_id" // 用户UserID key
@@ -34,4 +33,5 @@ var (
 	UserLoginTimeQueueMax      = 5 // 最近5次登录
 	UserCacheDefaultExpiration = time.Minute * 30
 	UserCacheDefaultCleanUp    = time.Minute * 30
+	UserMailExpiredDeleteBatch = 20000
 )

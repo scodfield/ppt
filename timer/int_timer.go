@@ -46,7 +46,7 @@ func doUserMailExpireDelete() {
 	begin := time.Now()
 	flag := true
 	for flag {
-		delMails, err := db.NewUserMailDao(dao.PgDB).DeleteUserMailsByExpiredTimeAndBatch(time.Now(), dao.UserMailExpiredDeleteBatch)
+		delMails, err := db.NewUserMailDao(dao.PgDB).DeleteUserMailsByExpiredTimeAndBatch(time.Now(), int32(dao.UserMailExpiredDeleteBatch))
 		if err != nil {
 			log.Error("doUserMailExpireDelete delete userMailExpiredLock error", zap.Error(err))
 			flag = false
