@@ -16,6 +16,7 @@ import (
 	"ppt/mq"
 	"ppt/nacos/wrapper"
 	"ppt/router"
+	"ppt/timer"
 	"runtime/debug"
 	"sync"
 	"syscall"
@@ -94,6 +95,11 @@ func (s *program) Init(env svc.Environment) error {
 
 	if err = mq.InitAsynq(&dbCfg.RedisConfig); err != nil {
 		log.Error("ppt init asynq client error", zap.Error(err))
+		return err
+	}
+
+	if err = timer.InitTimer(); err != nil {
+		log.Error("ppt init timer error", zap.Error(err))
 		return err
 	}
 

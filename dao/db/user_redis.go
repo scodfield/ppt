@@ -291,3 +291,7 @@ func GenerateMultipleUserIDs(client redis.UniversalClient, num int) ([]uint64, e
 	}
 	return userIDs, nil
 }
+
+func GetUserMailExpiredLock(client redis.UniversalClient, key string, expireTime time.Duration) (bool, error) {
+	return client.SetNX(dao.Ctx, key, time.Now().UnixMilli(), expireTime).Result()
+}

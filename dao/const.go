@@ -18,7 +18,10 @@ const (
 	MongoCollUserCredit          = "user_credit"
 	MongoCollUserLogin           = "user_login"
 	MongoCollFriendVisit         = "friend_visit"
-	MongoCollIPReg               = "ip_reg"           // IP注冊表
+	MongoCollIPReg               = "ip_reg" // IP注冊表
+	UserMailExpiredKey           = "ppt:user:mail_expired"
+	UserMailExpiredKeyExpire     = 6 * time.Hour
+	UserMailExpiredDeleteBatch   = 20000
 	UserMailExpiredDeleteDays    = 7                  // 过期删除天数
 	UserMailExpiredMaxDeleteDays = 15                 // 最大过期删除天数
 	UserIDKey                    = "ppt:user:user_id" // 用户UserID key
