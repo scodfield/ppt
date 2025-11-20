@@ -98,7 +98,8 @@ func InitSaramaAsyncClient(bootstrapServer, clientID, topic string) (*SaramaAsyn
 	config.Producer.Retry.Max = 3
 	config.Producer.Retry.Backoff = 100 * time.Millisecond
 	config.Producer.RequiredAcks = sarama.WaitForAll // Idempotent-确认机制
-	config.Producer.Compression = sarama.CompressionGZIP
+	//config.Producer.Compression = sarama.CompressionGZIP
+	config.Producer.Compression = sarama.CompressionZSTD // 提高一下发送速度
 	config.Producer.Flush.Frequency = 500 * time.Millisecond
 
 	config.Producer.MaxMessageBytes = 1024 * 16
@@ -193,7 +194,7 @@ func InitSaramaConsumerClient(bootstrapServer, clientID, groupID string, topic [
 	config.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{
 		sarama.NewBalanceStrategySticky(), // 传统粘性
 	}
-	config.Consumer.Group.Session.Timeout = time.Second * 30 // 避免网络波动导致不必要的重平衡
+	config.Consumer.Group.Session.Timeout = time.Second * 60 // 避免网络波动导致不必要的重平衡（针对糟糕的网络环境）
 	config.Consumer.Group.Heartbeat.Interval = time.Second * 8
 
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest         // 从最早的消息开始消费
